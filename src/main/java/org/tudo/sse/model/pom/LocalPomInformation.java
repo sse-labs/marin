@@ -28,8 +28,7 @@ public class LocalPomInformation extends PomInformation {
             resolveLocalFile(resolver, fileToInputStream(toPom.toFile()));
             resolveParentAndImport(resolver);
             resolveDependencies(resolver);
-        } catch (IOException | XmlPullParserException | org.tudo.sse.resolution.FileNotFoundException |
-                 PomResolutionException e) {
+        } catch (IOException | XmlPullParserException e) {
             throw new RuntimeException(e);
         }
     }
@@ -41,8 +40,7 @@ public class LocalPomInformation extends PomInformation {
             resolveLocalFile(resolver, fileToInputStream(localPom));
             resolveParentAndImport(resolver);
             resolveDependencies(resolver);
-        } catch (IOException | XmlPullParserException | org.tudo.sse.resolution.FileNotFoundException |
-                 PomResolutionException e) {
+        } catch (IOException | XmlPullParserException e) {
             throw new RuntimeException(e);
         }
     }
@@ -53,8 +51,7 @@ public class LocalPomInformation extends PomInformation {
             resolveLocalFile(resolver, localPom);
             resolveParentAndImport(resolver);
             resolveDependencies(resolver);
-        } catch (IOException | XmlPullParserException | org.tudo.sse.resolution.FileNotFoundException |
-                 PomResolutionException e) {
+        } catch (IOException | XmlPullParserException e) {
             throw new RuntimeException(e);
         }
     }
@@ -63,7 +60,7 @@ public class LocalPomInformation extends PomInformation {
      * Opens an inputStream for the local pom file provided
      * @param localPom local file to be opened
      * @return inputstream of the local pom provided
-     * @throws FileNotFoundException
+     * @throws FileNotFoundException handles when the file to be open doesn't exist
      */
     public InputStream fileToInputStream(File localPom) throws FileNotFoundException {
         return new FileInputStream(localPom);
@@ -176,11 +173,8 @@ public class LocalPomInformation extends PomInformation {
     /**
      * @see PomResolver
      * @param resolver the pomResolver used to drive this method
-     * @throws org.tudo.sse.resolution.FileNotFoundException when a file to resolve cannot be found
-     * @throws IOException when there is an issue opening a file to resolve
-     * @throws PomResolutionException when there is an issue resolving the pom file
      */
-    public void resolveDependencies(PomResolver resolver) throws org.tudo.sse.resolution.FileNotFoundException, IOException, PomResolutionException {
+    public void resolveDependencies(PomResolver resolver) {
         setResolvedDependencies(resolver.resolveDependencies(this));
     }
 

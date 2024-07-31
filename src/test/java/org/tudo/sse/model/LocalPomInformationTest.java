@@ -17,8 +17,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class LocalPomInformationTest {
 
-    Gson gson = new Gson();
-    Map<String, Object> json;
+    final Gson gson = new Gson();
+    final Map<String, Object> json;
     {
         InputStream resource = this.getClass().getClassLoader().getResourceAsStream("localPomExpected.json");
         assert resource != null;

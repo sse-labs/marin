@@ -109,7 +109,7 @@ public class IndexIterator implements Iterator<IndexInformation> {
                 index++;
 
                 if(index != 0 && index % 500000 == 0){
-                   log.info(index + " indexes have been processed.");
+                    log.info("{} indexes have been processed.", index);
                 }
 
                 return t;

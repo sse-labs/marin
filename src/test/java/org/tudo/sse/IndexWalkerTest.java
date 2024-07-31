@@ -22,8 +22,8 @@ class IndexWalkerTest {
 
     IndexWalker indexWalker;
 
-    Map<String, Object> json;
-    Gson gson = new Gson();
+    final Map<String, Object> json;
+    final Gson gson = new Gson();
 
     {
         InputStream resource = this.getClass().getClassLoader().getResourceAsStream("IndexInputs.json");
@@ -36,7 +36,7 @@ class IndexWalkerTest {
     void setUp() {
         try {
             indexWalker = new IndexWalker(new URI("https://repo1.maven.org/maven2/"));
-        } catch (IOException | URISyntaxException e) {
+        } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }

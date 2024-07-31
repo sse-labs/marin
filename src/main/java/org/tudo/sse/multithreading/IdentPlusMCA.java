@@ -1,4 +1,4 @@
-package org.tudo.sse.multiThreading;
+package org.tudo.sse.multithreading;
 
 import org.tudo.sse.MavenCentralAnalysis;
 import org.tudo.sse.model.ArtifactIdent;

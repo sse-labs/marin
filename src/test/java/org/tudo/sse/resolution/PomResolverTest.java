@@ -323,9 +323,9 @@ class PomResolverTest {
             assertEquals(expectedDeps.size(), current.size());
 
             for(int j = 0; j < current.size(); j++) {
-                String actual = current.get(j).getIdent().getCoordinates() + ":" + current.get(j).getIdent().repository;
+                String actual = current.get(j).getIdent().getCoordinates() + ":" + current.get(j).getIdent().getRepository();
                 if(current.get(j).relocation != null) {
-                    actual = current.get(j).getRelocation().getCoordinates() + ":" + current.get(j).getIdent().repository;
+                    actual = current.get(j).getRelocation().getCoordinates() + ":" + current.get(j).getIdent().getRepository();
                 }
                 assertEquals(expectedDeps.get(j), actual);
             }

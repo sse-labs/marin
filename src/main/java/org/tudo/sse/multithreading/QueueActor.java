@@ -1,4 +1,4 @@
-package org.tudo.sse.multiThreading;
+package org.tudo.sse.multithreading;
 
 import akka.actor.*;
 import akka.japi.pf.ReceiveBuilder;

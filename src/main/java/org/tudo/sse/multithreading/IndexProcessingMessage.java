@@ -1,4 +1,4 @@
-package org.tudo.sse.multiThreading;
+package org.tudo.sse.multithreading;
 
 /**
  * This class contains a message sent from the Index to the Queue class to signal that it finished processing indexes.

@@ -1,8 +1,7 @@
 package org.tudo.sse.model.pom;
 
-import org.tudo.sse.model.ArtifactIdent;
-
 import java.util.List;
+import org.tudo.sse.model.ArtifactIdent;
 
 /**
  * This class holds the dependency information collected from the pom file, along with some attributes to aid in dependency resolution.

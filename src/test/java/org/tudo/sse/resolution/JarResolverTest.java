@@ -19,8 +19,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class JarResolverTest {
 
     JarResolver jarResolver;
-    Map<String, Object> json;
-    Gson gson = new Gson();
+    final Map<String, Object> json;
+    final Gson gson = new Gson();
 
     {
         InputStream resource = this.getClass().getClassLoader().getResourceAsStream("JarExpected.json");

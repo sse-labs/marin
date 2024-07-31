@@ -17,11 +17,12 @@ import static org.junit.jupiter.api.Assertions.*;
 class IndexIteratorTest {
 
     IndexIterator indexIterator;
-    Map<String, Object> json;
-    Gson gson = new Gson();
+    final Map<String, Object> json;
+    final Gson gson = new Gson();
 
     {
         InputStream resource = this.getClass().getClassLoader().getResourceAsStream("IndexInputs.json");
+        assert resource != null;
         Reader targetReader = new InputStreamReader(resource);
         json = gson.fromJson(targetReader, new TypeToken<Map<String, Object>>() {}.getType());
     }
