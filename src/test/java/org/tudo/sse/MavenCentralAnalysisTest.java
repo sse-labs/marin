@@ -20,10 +20,10 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MavenCentralAnalysisTest {
-    OwnImplementation tester = new OwnImplementation();
-    String base = "https://repo1.maven.org/maven2/";
-    Map<String, Object> json;
-    Gson gson = new Gson();
+    final OwnImplementation tester = new OwnImplementation();
+    final String base = "https://repo1.maven.org/maven2/";
+    final Map<String, Object> json;
+    final Gson gson = new Gson();
 
     {
         InputStream resource = this.getClass().getClassLoader().getResourceAsStream("MavenAnalysis.json");
@@ -34,7 +34,7 @@ class MavenCentralAnalysisTest {
 
     @Test
     void parseCmdLinePositive() {
-        List<String[]> cliInputs = new ArrayList();
+        List<String[]> cliInputs = new ArrayList<>();
         String[] args = {"-st", "500:223", "--index", "--pom", "true"};
         cliInputs.add(args);
         args = new String[]{"--coordinates", "src/test/resources/localPom.xml"};
@@ -56,40 +56,36 @@ class MavenCentralAnalysisTest {
 
         int i = 0;
         for(String[] input : cliInputs) {
-            try {
-                MavenCentralAnalysis tester = new MavenCentralAnalysis() {
-                    @Override
-                    public void analyzeArtifact(Artifact current) {
+            MavenCentralAnalysis tester = new MavenCentralAnalysis() {
+                @Override
+                public void analyzeArtifact(Artifact current) {
 
-                    }
-                };
-                tester.parseCmdLine(input);
-                CliInformation result = tester.getSetupInfo();
-                List<String> currentExp = expected.get(i);
-                //run asserts here
-                assertEquals(Integer.parseInt(currentExp.get(0)), result.getSkip());
-                assertEquals(Integer.parseInt(currentExp.get(1)), result.getTake());
-                assertEquals(Integer.parseInt(currentExp.get(2)), result.getSince());
-                assertEquals(Integer.parseInt(currentExp.get(3)), result.getUntil());
-
-                if(result.getToCoordinates() != null) {
-                    assertEquals(currentExp.get(4), result.getToCoordinates().toString());
-                } else {
-                    assertEquals(currentExp.get(4), "null");
                 }
+            };
+            tester.parseCmdLine(input);
+            CliInformation result = tester.getSetupInfo();
+            List<String> currentExp = expected.get(i);
+            //run asserts here
+            assertEquals(Integer.parseInt(currentExp.get(0)), result.getSkip());
+            assertEquals(Integer.parseInt(currentExp.get(1)), result.getTake());
+            assertEquals(Integer.parseInt(currentExp.get(2)), result.getSince());
+            assertEquals(Integer.parseInt(currentExp.get(3)), result.getUntil());
 
-                if(result.getToIndexPos() != null) {
-                    assertEquals(currentExp.get(5), result.getToIndexPos().toString());
-                } else {
-                    assertEquals(currentExp.get(5), "null");
-                }
-                assertEquals(Boolean.parseBoolean(currentExp.get(6)), result.isIndex());
-                assertEquals(Boolean.parseBoolean(currentExp.get(7)), result.isPom());
-                assertEquals(Boolean.parseBoolean(currentExp.get(8)), result.isJar());
-
-            } catch (URISyntaxException | IOException e) {
-                fail("Threw an exception.");
+            if(result.getToCoordinates() != null) {
+                assertEquals(currentExp.get(4), result.getToCoordinates().toString());
+            } else {
+                assertEquals(currentExp.get(4), "null");
             }
+
+            if(result.getToIndexPos() != null) {
+                assertEquals(currentExp.get(5), result.getToIndexPos().toString());
+            } else {
+                assertEquals(currentExp.get(5), "null");
+            }
+            assertEquals(Boolean.parseBoolean(currentExp.get(6)), result.isIndex());
+            assertEquals(Boolean.parseBoolean(currentExp.get(7)), result.isPom());
+            assertEquals(Boolean.parseBoolean(currentExp.get(8)), result.isJar());
+
             i++;
         }
 
@@ -97,7 +93,7 @@ class MavenCentralAnalysisTest {
 
     @Test
     void parseCmdLineNegative() {
-        List<String[]> cliInputs = new ArrayList();
+        List<String[]> cliInputs = new ArrayList<>();
         String[] args = {"-st", "500:22:3", "--index", "--pom"};
         cliInputs.add(args);
         args = new String[]{"--jar", "--coordinates", "-/xcd/"};
@@ -121,10 +117,10 @@ class MavenCentralAnalysisTest {
     @Test
     void walkPaginated() {
         List<Tuple2<Integer, Integer>> inputs = new ArrayList<>();
-        inputs.add(new Tuple2(500, 10));
-        inputs.add(new Tuple2(0, 10));
-        inputs.add(new Tuple2(50000, 100));
-        inputs.add(new Tuple2(763, 20));
+        inputs.add(new Tuple2<>(500, 10));
+        inputs.add(new Tuple2<>(0, 10));
+        inputs.add(new Tuple2<>(50000, 100));
+        inputs.add(new Tuple2<>(763, 20));
 
         for(Tuple2 input : inputs) {
             int start1 = (int) input._1;
@@ -155,7 +151,7 @@ class MavenCentralAnalysisTest {
 
     @Test
     void indexProcessor() {
-        List<String[]> cliInputs = new ArrayList();
+        List<String[]> cliInputs = new ArrayList<>();
         String[] args = {"-st", "200:70"};
         cliInputs.add(args);
         args = new String[] {"-st", "499:11", "--name", "src/test/resources/stop.txt"};
@@ -186,7 +182,7 @@ class MavenCentralAnalysisTest {
 
     @Test
     void readIdentsIn() {
-        List<String[]> cliInputs = new ArrayList();
+        List<String[]> cliInputs = new ArrayList<>();
         String[] args = {"--coordinates", "src/main/resources/coordinates.txt"};
         cliInputs.add(args);
         args = new String[] {"--coordinates", "src/main/resources/coordinates.txt", "--name", "src/test/resources/stop.txt"};
@@ -205,27 +201,23 @@ class MavenCentralAnalysisTest {
 
        int i = 0;
         for(String[] arg : cliInputs) {
-            try {
-                List<String> curExpected = expected.get(i);
-                MavenCentralAnalysis tester = new MavenCentralAnalysis() {
-                    @Override
-                    public void analyzeArtifact(Artifact current) {}
-                };
-                tester.parseCmdLine(arg);
-                CliInformation current = tester.getSetupInfo();
-                List<ArtifactIdent> idents = tester.readIdentsIn();
+            List<String> curExpected = expected.get(i);
+            MavenCentralAnalysis tester = new MavenCentralAnalysis() {
+                @Override
+                public void analyzeArtifact(Artifact current) {}
+            };
+            tester.parseCmdLine(arg);
+            CliInformation current = tester.getSetupInfo();
+            List<ArtifactIdent> idents = tester.readIdentsIn();
 
-                assertEquals(curExpected.size(), idents.size());
+            assertEquals(curExpected.size(), idents.size());
 
-                long ending = getEndingIndex(current.getName());
+            long ending = getEndingIndex(current.getName());
 
-                assertEquals(expectedEndings[i], ending);
+            assertEquals(expectedEndings[i], ending);
 
-                for(int j = 0; j < curExpected.size(); j++) {
-                    assertEquals(curExpected.get(j), idents.get(j).getCoordinates());
-                }
-            } catch (URISyntaxException | IOException e) {
-                throw new RuntimeException(e);
+            for(int j = 0; j < curExpected.size(); j++) {
+                assertEquals(curExpected.get(j), idents.get(j).getCoordinates());
             }
             i++;
         }
@@ -245,8 +237,8 @@ class MavenCentralAnalysisTest {
 
     @Test
     void checkMultiThreading() {
-        List<String[]> singleArgs = new ArrayList();
-        List<String[]> multiArgs = new ArrayList();
+        List<String[]> singleArgs = new ArrayList<>();
+        List<String[]> multiArgs = new ArrayList<>();
 
         singleArgs.add(new String[]{"-st", "10:1000", "--pom", "true", "--jar"});
         multiArgs.add(new String[]{"--multi", "5", "-st", "10:1000", "--pom", "true", "--jar"});

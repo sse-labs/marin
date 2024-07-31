@@ -12,7 +12,7 @@ public class Artifact {
     /**
      * The identifier object for the artifact.
      */
-    public ArtifactIdent ident;
+    public final ArtifactIdent ident;
     /**
      * A secondary identifier, for if its pom information has been moved on the maven central repository.
      */

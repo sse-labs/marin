@@ -1,15 +1,15 @@
 package org.tudo.sse.utils;
 
-import org.tudo.sse.resolution.FileNotFoundException;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import org.tudo.sse.resolution.FileNotFoundException;
 
 /**
- * This class handles opening connections for pom and jar resolution. This is done through the implementation of HttpURLConnection.
+ * This class handles opening connections for pom and jar resolution.
+ * This is done through the implementation of HttpURLConnection.
  */
 public class ResourceConnections {
 
@@ -19,11 +19,10 @@ public class ResourceConnections {
      * @param toOpen url to open connection
      * @return a connection to the requested resource
      * @throws IOException when there is an issue opening a file
-     * @throws FileNotFoundException
-     * @throws NullPointerException
+     * @throws FileNotFoundException handles errors that occur when the file to process isn't found
+     * @throws NullPointerException handles errors that occur when a null pointer is accessed
      */
-    public static HttpURLConnection openConnection(URI toOpen) throws IOException, FileNotFoundException, NullPointerException {
-
+    public static HttpURLConnection openConnection(final URI toOpen) throws IOException, FileNotFoundException, NullPointerException {
         HttpURLConnection conn = (HttpURLConnection) toOpen.toURL().openConnection();
 
         if (conn.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
@@ -40,16 +39,17 @@ public class ResourceConnections {
     }
 
     /**
-     * This method attempts to open an inputStream from the connection opened in the openConnection method.
+     * This method attempts to open an inputStream
+     * from the connection opened in the openConnection method.
+     *
      * @param toOpen url to open
      * @return an inputStream to the requested resource
      * @throws IOException when there is an issue opening a file
-     * @throws FileNotFoundException
-     */
-    public static InputStream openInputStream(URI toOpen) throws IOException, FileNotFoundException {
+     * @throws FileNotFoundException handles errors that occur when the file to process isn't found*/
+    public static InputStream openInputStream(final URI toOpen) throws IOException, FileNotFoundException {
         try {
             return openConnection(toOpen).getInputStream();
-        } catch(NullPointerException e) {
+        } catch (NullPointerException e) {
             return null;
         }
     }

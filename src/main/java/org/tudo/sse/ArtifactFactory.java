@@ -1,12 +1,11 @@
 package org.tudo.sse;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.tudo.sse.model.*;
 import org.tudo.sse.model.index.IndexInformation;
 import org.tudo.sse.model.jar.JarInformation;
 import org.tudo.sse.model.pom.PomInformation;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * The ArtifactFactory handles the creation and storage of artifacts resolved.

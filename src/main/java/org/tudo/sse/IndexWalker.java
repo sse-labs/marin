@@ -28,7 +28,7 @@ public class IndexWalker implements Iterable<IndexInformation>{
 
     private static final Logger log = LogManager.getLogger(IndexWalker.class);
 
-    public IndexWalker(URI base) throws IOException {
+    public IndexWalker(URI base) {
         this.base = base;
         resetIterator = true;
     }

@@ -1,11 +1,11 @@
 package org.tudo.sse.model;
 
+import java.net.URI;
+import java.util.Objects;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.tudo.sse.utils.MavenCentralRepository;
 
-import java.net.URI;
-import java.util.Objects;
 
 /**
  * The ArtifactIdent holds the gav triple for each artifact on the maven central repository.
@@ -15,20 +15,20 @@ public class ArtifactIdent {
     /**
      * The group section of the identifier.
      */
-    public String groupID;
+    private String groupID;
 
     /**
      * The specific artifact identifier.
      */
-    public String artifactID;
+    private String artifactID;
     /**
      * The version of the artifact.
      */
-    public String version;
+    private String version;
     /**
      * The repository where this artifact can be found.
      */
-    public String repository;
+    private String repository;
 
     private static final Logger log = LogManager.getLogger(ArtifactIdent.class);
 
@@ -119,7 +119,7 @@ public class ArtifactIdent {
     }
 
     /**
-     * Gets the url for the pom file on mavencentral
+     * Gets the url for the pom file on maven central
      * @return pom URI
      */
     public URI getMavenCentralPomUri() {
@@ -136,7 +136,7 @@ public class ArtifactIdent {
     }
 
     /**
-     * Gets the url for the jar file on mavencentral
+     * Gets the url for the jar file on maven central
      * @return jar URI
      */
     public URI getMavenCentralJarUri() {
@@ -149,7 +149,7 @@ public class ArtifactIdent {
     }
 
     /**
-     * Gets the url for the versions file on mavencentral
+     * Gets the url for the versions file on maven central
      * @return versions.xml URI
      */
     public URI getMavenCentralXMLUri() {

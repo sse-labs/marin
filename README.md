@@ -10,7 +10,7 @@ To use Maven Central Research Interface extend the Maven Central Analysis class 
 ```java -jar executableName *INSERT CLI HERE* ```
 
 ##Example Use Cases:
-For these examples, these will perform the analysis on the first 1000 artifacts. The steps are the same for each one, with the exception of the implementation being used, and the cli arguments added to execute the jar.
+For these examples, these will perform the analysis on the first 1000 artifacts. The steps are the same for each one, except the implementation being used and the cli arguments added to execute the jar.
 1. Set up the implementation of the MavenCentralAnalysis class.
 2. Run the executable with the given cli
 
@@ -157,7 +157,7 @@ IndexWalker can be implemented into mining software for the iteration and collec
 
 ### Modes
 - Normal:
-  In this mode all of the information listed above is collected.
+  In this mode all information listed above is collected.
 - Lazy:
   In this mode just the identifiers are collected.
 
@@ -187,10 +187,10 @@ For each Pom file resolved these are the raw features that are collected:
 For each pom file that contains a reference to a parent pom or import, those references are also resolved.
 
 ### Dependency Resolution
-Some dependencies's versions are not explicitly defined in the current pom file. So Pom resolver includes a dependency resolution algorithm to search through parents and imports to resolve versions.
+Some dependency versions are not explicitly defined in the current pom file. So Pom resolver includes a dependency resolution algorithm to search through parents and imports to resolve versions.
 
 ### Dependency Version Ranges
-Other dependencies versions are defined via a version range. An algorithm for resolving these is also present in the Pom Resolver.
+Other dependencies versions are defined via a version range. An algorithm for resolving these dependencies is also present in the Pom Resolver.
 
 ### All Transitive Dependency Resolution
 Transitive dependencies are collected without resolving conflicts via the repeated resolution of dependencies.

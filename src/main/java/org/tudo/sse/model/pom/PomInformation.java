@@ -123,7 +123,7 @@ public class PomInformation extends ArtifactInformation {
     }
 
     /**
-     * Retrieves a map of conflicts where each g:a is mapped to a list of conflicts.
+     * Retrieves a map of conflicts where each (g:a) is mapped to a list of conflicts.
      * @return map containing a string (g:a) mapped to a list of conflicting identifiers
      */
     public Map<String, List<ArtifactIdent>> getTransitiveConflicts() {

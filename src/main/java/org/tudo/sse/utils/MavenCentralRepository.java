@@ -37,7 +37,7 @@ public class MavenCentralRepository {
         String m2Repo = System.getProperty("user.home") + File.separator + ".m2" + File.separator + "repository";
 
         // Combine to get the full path
-        String fullPath = null;
+        String fullPath;
         try {
             fullPath = m2Repo + File.separator + buildJarFileURI(ident);
             // Create a File object
@@ -64,19 +64,19 @@ public class MavenCentralRepository {
     public static URI buildPomFileURI(ArtifactIdent artifact)
             throws URISyntaxException {
         return buildArtifactBaseURI(artifact)
-                .resolve(encode(artifact.artifactID) + "-" + encode(artifact.version) + ".pom");
+                .resolve(encode(artifact.getArtifactID()) + "-" + encode(artifact.getVersion()) + ".pom");
     }
 
     public static URI buildSecondaryPomFileURI(ArtifactIdent artifact, String secondaryRepoPath)
             throws URISyntaxException {
         return buildSecondaryArtifactBaseURI(artifact, secondaryRepoPath)
-                .resolve(encode(artifact.artifactID) + "-" + encode(artifact.version) + ".pom");
+                .resolve(encode(artifact.getArtifactID()) + "-" + encode(artifact.getVersion()) + ".pom");
     }
 
     public static URI buildJarFileURI(ArtifactIdent artifact)
             throws URISyntaxException {
         return buildArtifactBaseURI(artifact)
-                .resolve(encode(artifact.artifactID) + "-" + encode(artifact.version) + ".jar");
+                .resolve(encode(artifact.getArtifactID()) + "-" + encode(artifact.getVersion()) + ".jar");
     }
 
     public static URI buildVersionsFileURI(ArtifactIdent artifact)
@@ -88,24 +88,24 @@ public class MavenCentralRepository {
     public static URI buildArtifactBaseURI(ArtifactIdent artifact)
             throws URISyntaxException {
         return new URI(RepoBasePath)
-                .resolve(encode(artifact.groupID).replace(".", "/") + "/")
-                .resolve(encode(artifact.artifactID) + "/")
-                .resolve(encode(artifact.version) + "/");
+                .resolve(encode(artifact.getGroupID()).replace(".", "/") + "/")
+                .resolve(encode(artifact.getArtifactID()) + "/")
+                .resolve(encode(artifact.getVersion()) + "/");
     }
 
     public static URI buildSecondaryArtifactBaseURI(ArtifactIdent artifact, String secondaryRepoPath)
             throws URISyntaxException {
         return new URI(secondaryRepoPath)
-                .resolve(encode(artifact.groupID).replace(".", "/") + "/")
-                .resolve(encode(artifact.artifactID) + "/")
-                .resolve(encode(artifact.version) + "/");
+                .resolve(encode(artifact.getGroupID()).replace(".", "/") + "/")
+                .resolve(encode(artifact.getArtifactID()) + "/")
+                .resolve(encode(artifact.getVersion()) + "/");
     }
 
     public static URI buildVersionsBaseURI(ArtifactIdent artifact)
             throws URISyntaxException {
         return new URI(RepoBasePath)
-                .resolve(encode(artifact.groupID).replace(".", "/") + "/")
-                .resolve(encode(artifact.artifactID) + "/");
+                .resolve(encode(artifact.getGroupID()).replace(".", "/") + "/")
+                .resolve(encode(artifact.getArtifactID()) + "/");
     }
 
     private static String encode(String path) {

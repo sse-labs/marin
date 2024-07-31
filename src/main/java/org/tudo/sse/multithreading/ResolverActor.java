@@ -1,4 +1,4 @@
-package org.tudo.sse.multiThreading;
+package org.tudo.sse.multithreading;
 
 import akka.actor.AbstractActor;
 import akka.actor.Props;
@@ -6,10 +6,15 @@ import akka.japi.pf.ReceiveBuilder;
 import org.tudo.sse.ArtifactFactory;
 
 /**
- * This class is spawned in multiple threads allowing for faster resolution of large quantity of artifacts.
+ * This class is spawned in multiple threads
+ * allowing for faster resolution of large quantity of artifacts.
  */
 public class ResolverActor extends AbstractActor {
 
+    /**
+     * Sets up the inherited properties for the actor.
+     * @return properties created for the ResolverActor class
+     */
     public static Props props() {
         return Props.create(ResolverActor.class, ResolverActor::new);
     }

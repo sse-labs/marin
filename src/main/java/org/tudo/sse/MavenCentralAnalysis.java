@@ -7,11 +7,11 @@ import org.apache.logging.log4j.Logger;
 import org.tudo.sse.model.Artifact;
 import org.tudo.sse.model.ArtifactIdent;
 import org.tudo.sse.model.index.IndexInformation;
-import org.tudo.sse.multiThreading.IdentPlusMCA;
-import org.tudo.sse.multiThreading.IndexProcessingMessage;
+import org.tudo.sse.multithreading.IdentPlusMCA;
+import org.tudo.sse.multithreading.IndexProcessingMessage;
 import org.tudo.sse.resolution.ResolverFactory;
 import org.tudo.sse.utils.IndexIterator;
-import org.tudo.sse.multiThreading.QueueActor;
+import org.tudo.sse.multithreading.QueueActor;
 
 import java.io.*;
 import java.net.URI;
@@ -46,11 +46,9 @@ public abstract class MavenCentralAnalysis {
      * This method handles parsing the command line arguments and stores it into a CliInformation object.
      *
      * @param args - cli to be parsed
-     * @throws URISyntaxException when there is an issue with the url built
-     * @throws IOException when there is an issue opening a file
      * @see CliInformation when there is an issue processing the cli passed to the program
      */
-    public void parseCmdLine(String[] args) throws URISyntaxException, IOException {
+    public void parseCmdLine(String[] args) {
         boolean flagSet1 = false;
         boolean flagSet2 = false;
         boolean flagSet3 = false;
@@ -237,12 +235,11 @@ public abstract class MavenCentralAnalysis {
     /**
      * Handles walking the maven central index, choosing how to do so based on the configuration.
      *
-     * @return list of maven central identifiers
-     * @see ArtifactIdent
      * @throws URISyntaxException when there is an issue with the url built
-     * @throws IOException when there is an issue opening a file
+     * @throws IOException        when there is an issue opening a file
+     * @see ArtifactIdent
      */
-    public List<ArtifactIdent> indexProcessor() throws URISyntaxException, IOException {
+    public void indexProcessor() throws URISyntaxException, IOException {
         String base = "https://repo1.maven.org/maven2/";
         IndexIterator indexIterator;
 
@@ -279,7 +276,6 @@ public abstract class MavenCentralAnalysis {
 
         writeLastProcessed(indexIterator.getIndex(), setupInfo.getName());
 
-        return identifiers;
     }
 
     public void processIndex(Artifact current) {

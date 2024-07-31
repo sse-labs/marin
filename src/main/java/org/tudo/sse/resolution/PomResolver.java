@@ -187,25 +187,22 @@ public class PomResolver {
                 if(relocation.getVersion() != null) {
                     relocationIdent.setVersion(relocation.getVersion());
                 }
-                //set a relocationIdent
                 rawPomFeatures.setRelocation(relocationIdent);
                 return rawPomFeatures;
             }
 
             if(model.getRepositories() != null) {
-                List<String> repos = new ArrayList();
+                List<String> repos = new ArrayList<>();
                 for(Repository repo : model.getRepositories()) {
                     repos.add(repo.getUrl());
                 }
                 rawPomFeatures.setRepositories(repos);
             }
 
-            //parent information
             if(model.getParent() != null) {
                 rawPomFeatures.setParent(new ArtifactIdent(model.getParent().getGroupId(), model.getParent().getArtifactId(), model.getParent().getVersion()));
             }
 
-            //more project information
             rawPomFeatures.setName(model.getName());
             rawPomFeatures.setDescription(model.getDescription());
             rawPomFeatures.setUrl(model.getUrl());
@@ -273,7 +270,6 @@ public class PomResolver {
             }
 
             if(dependency.getExclusions() != null) {
-                //Set up getting exclusions here
                 exclusions = new ArrayList<>();
                 for(Exclusion exclusion : dependency.getExclusions()) {
                     exclusions.add(exclusion.getGroupId() + ":" + exclusion.getArtifactId());
@@ -292,14 +288,12 @@ public class PomResolver {
      * @return an artifact with resolved rawPomFeatures, parent, and import information
      */
     public Artifact processArtifact(ArtifactIdent identifier) throws PomResolutionException, FileNotFoundException, IOException {
-        //Dynamic lookup here to speed up resolution
         if(ArtifactFactory.getArtifact(identifier) != null && Objects.requireNonNull(ArtifactFactory.getArtifact(identifier)).getPomInformation() != null) {
             return ArtifactFactory.getArtifact(identifier);
         }
 
         PomInformation pomInformation = new PomInformation(identifier);
 
-        //keep processing rawPomFeatures until there is no relocation, then when making a new artifact if there's a relocation set that ident as well
         RawPomFeatures rawPomFeatures;
         try {
             rawPomFeatures = processRawPomFeatures(MavenRepo.openPomFileInputStream(identifier), identifier);
@@ -342,12 +336,12 @@ public class PomResolver {
 
     /**
      *
-     * @param managedDependencies
-     * @param info
-     * @return
-     * @throws PomResolutionException
-     * @throws FileNotFoundException
-     * @throws IOException
+     * @param managedDependencies list of managed dependencies from the rawPomFeatures, to be looked through for an import
+     * @param info the current information object
+     * @return a list of imported artifacts
+     * @throws PomResolutionException handles errors that arise with pom resolution
+     * @throws FileNotFoundException handles errors with not finding a file
+     * @throws IOException handles errors with opening and closing files
      */
     public List<Artifact> resolveImports(List<org.tudo.sse.model.pom.Dependency> managedDependencies, PomInformation info) throws PomResolutionException, FileNotFoundException, IOException {
         ArrayList<Artifact> imports = new ArrayList<>();
@@ -412,8 +406,8 @@ public class PomResolver {
         toReturn = resolveArtifactId(toReturn, current);
         toReturn = resolveVersion(toReturn, current);
         toReturn = resolveScope(toReturn, current);
-        if(toReturn.getIdent().version != null && !toReturn.getIdent().version.contains("${")) {
-            toReturn.setVersionRange(isVersionRange(toReturn.getIdent().version));
+        if(toReturn.getIdent().getVersion() != null && !toReturn.getIdent().getVersion().contains("${")) {
+            toReturn.setVersionRange(isVersionRange(toReturn.getIdent().getVersion()));
 
             if(!toReturn.isVersionRange()) {
                 toReturn.setResolved(true);
@@ -432,11 +426,11 @@ public class PomResolver {
     }
 
     private void matchManaged(org.tudo.sse.model.pom.Dependency dep, PomInformation current) {
-        if(dep.getIdent().version == null) {
-            String missingVersion = dep.getIdent().groupID  + ":" + dep.getIdent().artifactID;
+        if(dep.getIdent().getVersion() == null) {
+            String missingVersion = dep.getIdent().getGroupID()  + ":" + dep.getIdent().getArtifactID();
 
             for(org.tudo.sse.model.pom.Dependency cur : current.getRawPomFeatures().getDependencyManagement()) {
-                if(missingVersion.equals(cur.getIdent().groupID + ":" + cur.getIdent().artifactID)) {
+                if(missingVersion.equals(cur.getIdent().getGroupID() + ":" + cur.getIdent().getArtifactID())) {
                     dep.getIdent().setVersion(cur.getIdent().getVersion());
 
                 }
@@ -450,8 +444,7 @@ public class PomResolver {
         String scope = toReturn.getScope();
 
         if(scope == null) {
-            String missingVersion = curIdent.groupID  + ":" + curIdent.artifactID;
-            //check parent managed Dependencies for any reference to this dependency
+            String missingVersion = curIdent.getGroupID()  + ":" + curIdent.getArtifactID();
             if(current.getParent() != null) {
                 if(current.getParent().getPomInformation().getRawPomFeatures() != null && current.getParent().getPomInformation().getRawPomFeatures().getDependencyManagement() != null) {
                     Tuple2<String, String> depStuff = findGA(missingVersion, current.getParent().getPomInformation().getRawPomFeatures().getDependencyManagement());
@@ -463,7 +456,6 @@ public class PomResolver {
                     }
                 }
 
-                //if it didn't find it then recur
                 toReturn = resolveScope(toReturn, current.getParent().getPomInformation());
                 if (toReturn.getScope() != null) {
                     return toReturn;
@@ -481,7 +473,6 @@ public class PomResolver {
                             }
                         }
                     }
-                    //recur if version is still null
                     toReturn = recursiveHandler(anImport.getPomInformation(), toReturn);
                     if(toReturn.getScope() != null) {
                         return toReturn;
@@ -490,7 +481,6 @@ public class PomResolver {
             }
         }
 
-        //if it gets down here then it didn't find it and should be set to compile
         if(scope == null) {
             toReturn.setScope("compile");
         }
@@ -500,8 +490,8 @@ public class PomResolver {
 
     private org.tudo.sse.model.pom.Dependency resolveGroupId(org.tudo.sse.model.pom.Dependency toResolve, PomInformation current) {
         org.tudo.sse.model.pom.Dependency toReturn = new org.tudo.sse.model.pom.Dependency(toResolve);
-        if(toResolve.getIdent().groupID.contains("${")) {
-            String groupID = toResolve.getIdent().groupID;
+        if(toResolve.getIdent().getGroupID().contains("${")) {
+            String groupID = toResolve.getIdent().getGroupID();
             String key = groupID.substring(2, groupID.indexOf("}"));
             if(predefinedPomValues.containsKey(key) && predefinedPomValues.get(key).apply(current) != null) {
                 groupID = predefinedPomValues.get(key).apply(current);
@@ -517,11 +507,10 @@ public class PomResolver {
 
     private org.tudo.sse.model.pom.Dependency resolveArtifactId(org.tudo.sse.model.pom.Dependency toResolve, PomInformation current) {
         org.tudo.sse.model.pom.Dependency toReturn = new org.tudo.sse.model.pom.Dependency(toResolve);
-        if(toResolve.getIdent().artifactID.contains("${")) {
-            String artifactID = toResolve.getIdent().artifactID;
+        if(toResolve.getIdent().getArtifactID().contains("${")) {
+            String artifactID = toResolve.getIdent().getArtifactID();
             String key = artifactID.substring(2, artifactID.indexOf("}"));
             if(predefinedPomValues.containsKey(key)) {
-                //gets the function to call from the map, calls it on the current POMInfo and set groupID to it
                 artifactID = predefinedPomValues.get(key).apply(current);
             }
 
@@ -536,13 +525,11 @@ public class PomResolver {
     private org.tudo.sse.model.pom.Dependency resolveVersion(org.tudo.sse.model.pom.Dependency toResolve, PomInformation current) {
         org.tudo.sse.model.pom.Dependency toReturn = new org.tudo.sse.model.pom.Dependency(toResolve);
         ArtifactIdent curIdent = toReturn.getIdent();
-        String version = curIdent.version;
+        String version = curIdent.getVersion();
         boolean parentResolved = false;
 
-        //checking if version is present at all
         if(version == null) {
-            String missingVersion = curIdent.groupID  + ":" + curIdent.artifactID;
-            //check parent managed Dependencies for any reference to this dependency
+            String missingVersion = curIdent.getGroupID()  + ":" + curIdent.getArtifactID();
             if(current.getParent() != null) {
                 if(current.getParent().getPomInformation().getRawPomFeatures() != null && current.getParent().getPomInformation().getRawPomFeatures().getDependencyManagement() != null) {
                     Tuple2<String, String> depStuff = findGA(missingVersion, current.getParent().getPomInformation().getRawPomFeatures().getDependencyManagement());
@@ -557,13 +544,11 @@ public class PomResolver {
                     }
                 }
 
-                //if it didn't find it then recur
                 if (version == null) {
                     toReturn = resolveVersion(toReturn, current.getParent().getPomInformation());
                     curIdent = toReturn.getIdent();
                     version = curIdent.getVersion();
                 }
-              //once we are done checking the parents then we should check the imports
             }
 
             if(!parentResolved && current.getImports() != null) {
@@ -579,7 +564,6 @@ public class PomResolver {
                             current = anImport.getPomInformation();
                         }
                     }
-                    //recur if version is still null
                     if(version == null) {
                         toReturn = recursiveHandler(anImport.getPomInformation(), toReturn);
                         curIdent = toReturn.getIdent();
@@ -592,7 +576,6 @@ public class PomResolver {
         if(version != null && version.contains("${")) {
             String key = version.substring(version.indexOf("${") + 2, version.indexOf("}"));
             if(predefinedPomValues.containsKey(key) && predefinedPomValues.get(key).apply(current) != null) {
-                //gets the function to call from the map, calls it on the current PomInfo and set groupID to it
                 version = predefinedPomValues.get(key).apply(current);
             } else if(current.getRawPomFeatures() != null && current.getRawPomFeatures().getProperties() != null) {
                 while(version.contains("${") && current.getRawPomFeatures().getProperties().containsKey(key)) {
@@ -613,7 +596,7 @@ public class PomResolver {
             if(version.contains("${")) {
                    toReturn = recursiveHandler(current, toReturn);
                    curIdent = toReturn.getIdent();
-                   version = curIdent.version;
+                   version = curIdent.getVersion();
             }
 
             toReturn.getIdent().setVersion(version);
@@ -621,13 +604,13 @@ public class PomResolver {
         return toReturn;
     }
 
-    private Tuple2<String, String> findGA(String missing, List<org.tudo.sse.model.pom.Dependency> management) {
+    private Tuple2 findGA(String missing, List<org.tudo.sse.model.pom.Dependency> management) {
         for (org.tudo.sse.model.pom.Dependency dependency : management) {
-            if (missing.equals(dependency.getIdent().groupID + ":" + dependency.getIdent().artifactID)) {
+            if (missing.equals(dependency.getIdent().getGroupID() + ":" + dependency.getIdent().getArtifactID())) {
                 if(dependency.getScope() != null) {
-                    return new Tuple2(dependency.getIdent().version, dependency.getScope());
+                    return new Tuple2<>(dependency.getIdent().getVersion(), dependency.getScope());
                 } else {
-                    return new Tuple2(dependency.getIdent().version, null);
+                    return new Tuple2<>(dependency.getIdent().getVersion(), null);
                 }
             }
         }
@@ -636,10 +619,8 @@ public class PomResolver {
 
     private org.tudo.sse.model.pom.Dependency recursiveHandler(PomInformation current, org.tudo.sse.model.pom.Dependency toResolve) {
         if(current.getParent() != null) {
-            //recur to import parent
             return resolveVersion(toResolve, current.getParent().getPomInformation());
         } else if(current.getImports() != null) {
-            //recur for all the imports that the current import has
             for(Artifact anotherOne : current.getImports()) {
                 return resolveVersion(toResolve, anotherOne.getPomInformation());
             }
@@ -659,7 +640,6 @@ public class PomResolver {
         GenericVersionScheme scheme = new GenericVersionScheme();
         MetadataXpp3Reader reader = new MetadataXpp3Reader();
         String highestMatching = null;
-
 
         try {
             for(String splitRange : sets) {
@@ -745,7 +725,7 @@ public class PomResolver {
     public void resolveAllTransitives(Artifact current, Map<ArtifactIdent, Artifact> alrEncountered, List<String> exclusions) throws IOException {
         List<Artifact> transitives = new ArrayList<>();
         for (org.tudo.sse.model.pom.Dependency dependency : current.getPomInformation().getResolvedDependencies()) {
-            if(exclusions == null || !checkExclusions(dependency.getIdent().groupID + ":" + dependency.getIdent().getArtifactID(), exclusions)) {
+            if(exclusions == null || !checkExclusions(dependency.getIdent().getGroupID() + ":" + dependency.getIdent().getArtifactID(), exclusions)) {
                 if ((dependency.getScope().equals("compile") || dependency.getScope().equals("runtime")) && !dependency.isOptional() && dependency.isResolved() && !alrEncountered.containsKey(dependency.getIdent())) {
                     alrEncountered.put(dependency.getIdent(), null);
                     Artifact transitive = resolveTransitives(current, dependency, alrEncountered, dependency.getExclusions());
@@ -838,7 +818,7 @@ public class PomResolver {
                     if(conflicts.containsKey(key)) {
                         conflicts.get(key).add(artifact.getIdent());
                     } else {
-                        List<ArtifactIdent> temp = new ArrayList();
+                        List<ArtifactIdent> temp = new ArrayList<>();
                         temp.add(foundGA.get(key));
                         temp.add(artifact.getIdent());
                         conflicts.put(key, temp);
@@ -847,7 +827,6 @@ public class PomResolver {
             }
         }
 
-        //convert foundGA map to a list
         for(Map.Entry<String,ArtifactIdent> entry : foundGA.entrySet()) {
             toReturn.add(ArtifactFactory.getArtifact(entry.getValue()));
         }
