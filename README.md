@@ -1,4 +1,4 @@
-# mvn-research-interface
+# Maven Central Research Interface
 An interface focused on creating an easy way to index and retrieve data from the Maven Central repository.
 
 ## Required Java Version
@@ -219,3 +219,4 @@ The Jar resolver collects information about jar files stored under a given G:A:V
 
 ### Usage
 The jar resolver makes it easy to run static analysis on any amount of maven central jar artifacts.
+
