@@ -32,11 +32,20 @@ public abstract class MavenCentralAnalysis {
     private final CliInformation setupInfo;
     private ActorRef queueActorRef;
     private ResolverFactory resolverFactory;
+    protected boolean resolveIndex;
+    protected boolean resolvePom;
+    protected boolean processTransitives;
+    protected boolean resolveJar;
+
 
     public static final Logger log = LogManager.getLogger(MavenCentralAnalysis.class);
 
     public MavenCentralAnalysis()  {
         setupInfo = new CliInformation();
+        resolveIndex = false;
+        resolvePom = false;
+        processTransitives = false;
+        resolveJar = false;
     }
 
 
@@ -86,20 +95,6 @@ public abstract class MavenCentralAnalysis {
                         if(i + 1 < args.length) {
                             setupInfo.setName(parsePathName(args, i));
                         }
-                        break;
-                    case "--index":
-                        checkConflict(flagSet3, args[i]);
-                        setupInfo.setIndex(true);
-                        flagSet3 = true;
-                        i--;
-                        break;
-                    case "--pom":
-                        setupInfo.setPom(true);
-                        setupInfo.setResolveTransitives(parseBoolean(args, i));
-                        break;
-                    case "--jar":
-                        setupInfo.setJar(true);
-                        i--;
                         break;
                     case "--multi":
                         setupInfo.setMulti(true);
@@ -203,7 +198,7 @@ public abstract class MavenCentralAnalysis {
 
         //set up config from cli
         parseCmdLine(args);
-        resolverFactory = new ResolverFactory(setupInfo.isResolveTransitives());
+        resolverFactory = new ResolverFactory(processTransitives);
 
         if(setupInfo.isMulti()) {
             ActorSystem system = ActorSystem.create("my-system");
@@ -252,30 +247,23 @@ public abstract class MavenCentralAnalysis {
             indexIterator = new IndexIterator(new URI(base));
         }
 
-        List<ArtifactIdent> identifiers = new ArrayList<>();
-
-        if (setupInfo.isIndex()) {
-            List<Artifact> tempList;
+        if (resolveIndex) {
             if (setupInfo.getSkip() != -1 && setupInfo.getTake() != -1) {
-                tempList = walkPaginated(setupInfo.getTake(), indexIterator);
-                identifiers = artifactsToIdents(tempList);
+                walkPaginated(setupInfo.getTake(), indexIterator);
             } else if (setupInfo.getSince() != -1 && setupInfo.getUntil() != -1) {
-                tempList = walkDates(setupInfo.getSince(), setupInfo.getUntil(), indexIterator);
-                identifiers = artifactsToIdents(tempList);
+                walkDates(setupInfo.getSince(), setupInfo.getUntil(), indexIterator);
             } else {
-                tempList = walkAllIndexes(indexIterator);
-                identifiers = artifactsToIdents(tempList);
+                walkAllIndexes(indexIterator);
             }
         } else if (setupInfo.getSkip() != -1 && setupInfo.getTake() != -1) {
-            identifiers.addAll(lazyWalkPaginated(setupInfo.getTake(), indexIterator));
+            lazyWalkPaginated(setupInfo.getTake(), indexIterator);
         } else if (setupInfo.getSince() != -1 && setupInfo.getUntil() != -1) {
-            identifiers.addAll(lazyWalkDates(setupInfo.getSince(), setupInfo.getUntil(), indexIterator));
+            lazyWalkDates(setupInfo.getSince(), setupInfo.getUntil(), indexIterator);
         } else {
-            identifiers.addAll(lazyWalkAllIndexes(indexIterator));
+            lazyWalkAllIndexes(indexIterator);
         }
 
         writeLastProcessed(indexIterator.getIndex(), setupInfo.getName());
-
     }
 
     public void processIndex(Artifact current) {
@@ -474,19 +462,6 @@ public abstract class MavenCentralAnalysis {
         return idents;
     }
 
-    /**
-     * Converts a list of IndexArtifacts to a list of just the identifiers.
-     * @param toConvert list of artifacts to be converted
-     * @return a list of artifact identifiers
-     */
-    public List<ArtifactIdent> artifactsToIdents(List<Artifact> toConvert) {
-        List<ArtifactIdent> toReturn = new ArrayList<>();
-        for(Artifact current : toConvert) {
-            toReturn.add(current.getIdent());
-        }
-        return toReturn;
-    }
-
     private void writeLastProcessed(long lastIndexProcessed, Path name) throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter(name.toFile()));
         writer.write(String.valueOf(lastIndexProcessed));
@@ -584,11 +559,11 @@ public abstract class MavenCentralAnalysis {
     }
 
     public void callResolver(ArtifactIdent identifier) {
-        if(setupInfo.isPom() && setupInfo.isJar()) {
+        if(resolvePom && resolveJar) {
             resolverFactory.runBoth(identifier);
-        } else if(setupInfo.isPom()) {
+        } else if(resolvePom) {
             resolverFactory.runPom(identifier);
-        } else if(setupInfo.isJar()) {
+        } else if(resolveJar) {
             resolverFactory.runJar(identifier);
         }
     }

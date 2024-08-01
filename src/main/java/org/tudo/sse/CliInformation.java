@@ -15,10 +15,6 @@ public class CliInformation {
     private Path name;
     private Path toCoordinates;
     private Path toIndexPos;
-    private boolean index;
-    private boolean pom;
-    private boolean resolveTransitives;
-    private boolean jar;
     private boolean multi;
     private int threads;
 
@@ -30,9 +26,6 @@ public class CliInformation {
         name = Paths.get("lastIndexProcessed");
         toCoordinates = null;
         toIndexPos = null;
-        index = false;
-        pom = false;
-        jar = false;
         multi = false;
     }
 
@@ -84,30 +77,6 @@ public class CliInformation {
         this.toIndexPos = toIndexPos;
     }
 
-    public boolean isIndex() {
-        return index;
-    }
-
-    public void setIndex(boolean index) {
-        this.index = index;
-    }
-
-    public boolean isPom() {
-        return pom;
-    }
-
-    public void setPom(boolean pom) {
-        this.pom = pom;
-    }
-
-    public boolean isJar() {
-        return jar;
-    }
-
-    public void setJar(boolean jar) {
-        this.jar = jar;
-    }
-
     public Path getName() {
         return name;
     }
@@ -122,14 +91,6 @@ public class CliInformation {
 
     public void setMulti(boolean multi) {
         this.multi = multi;
-    }
-
-    public boolean isResolveTransitives() {
-        return resolveTransitives;
-    }
-
-    public void setResolveTransitives(boolean resolveTransitives) {
-        this.resolveTransitives = resolveTransitives;
     }
 
     public int getThreads() {

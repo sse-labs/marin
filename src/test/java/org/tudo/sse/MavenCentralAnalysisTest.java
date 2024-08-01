@@ -20,7 +20,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MavenCentralAnalysisTest {
-    final OwnImplementation tester = new OwnImplementation();
+    OwnImplementation tester = new OwnImplementation();
     final String base = "https://repo1.maven.org/maven2/";
     final Map<String, Object> json;
     final Gson gson = new Gson();
@@ -35,17 +35,13 @@ class MavenCentralAnalysisTest {
     @Test
     void parseCmdLinePositive() {
         List<String[]> cliInputs = new ArrayList<>();
-        String[] args = {"-st", "500:223", "--index", "--pom", "true"};
+        String[] args = {"-st", "500:223"};
         cliInputs.add(args);
         args = new String[]{"--coordinates", "src/test/resources/localPom.xml"};
         cliInputs.add(args);
-        args = new String[]{"--jar"};
+        args = new String[]{"--coordinates", "src/test/resources/localPom.xml", "-ip", "src/test/resources/localPom.xml"};
         cliInputs.add(args);
-        args = new String[]{"--coordinates", "src/test/resources/localPom.xml", "-ip", "src/test/resources/localPom.xml", "--pom", "false", "--jar"};
-        cliInputs.add(args);
-        args = new String[]{"--pom", "true", "-su", "53245:13243", "--index"};
-        cliInputs.add(args);
-        args = new String[]{"--jar", "--index"};
+        args = new String[]{"-su", "53245:13243"};
         cliInputs.add(args);
         args = new String[]{"-ip", "src/test/resources/localPom.xml", "--coordinates", "src/test/resources/localPom.xml"};
         cliInputs.add(args);
@@ -82,9 +78,6 @@ class MavenCentralAnalysisTest {
             } else {
                 assertEquals(currentExp.get(5), "null");
             }
-            assertEquals(Boolean.parseBoolean(currentExp.get(6)), result.isIndex());
-            assertEquals(Boolean.parseBoolean(currentExp.get(7)), result.isPom());
-            assertEquals(Boolean.parseBoolean(currentExp.get(8)), result.isJar());
 
             i++;
         }
@@ -156,9 +149,9 @@ class MavenCentralAnalysisTest {
         cliInputs.add(args);
         args = new String[] {"-st", "499:11", "--name", "src/test/resources/stop.txt"};
         cliInputs.add(args);
-        args = new String[]{"-st", "500:10", "--index"};
+        args = new String[]{"-st", "500:10"};
         cliInputs.add(args);
-        args = new String[]{"-st", "275:70", "--name", "src/test/resources/stop.txt", "--index"};
+        args = new String[]{"-st", "275:70", "--name", "src/test/resources/stop.txt"};
         cliInputs.add(args);
 
         int[] expectedEndings = {270, 510, 510, 345};
@@ -166,6 +159,9 @@ class MavenCentralAnalysisTest {
         int i = 0;
         for(String[] arg : cliInputs) {
             try {
+                if(i == 2) {
+                    tester.setIndex(true);
+                }
                 tester.parseCmdLine(arg);
                 CliInformation current = tester.getSetupInfo();
                 tester.indexProcessor();
@@ -240,26 +236,11 @@ class MavenCentralAnalysisTest {
         List<String[]> singleArgs = new ArrayList<>();
         List<String[]> multiArgs = new ArrayList<>();
 
-        singleArgs.add(new String[]{"-st", "10:1000", "--pom", "true", "--jar"});
-        multiArgs.add(new String[]{"--multi", "5", "-st", "10:1000", "--pom", "true", "--jar"});
+        singleArgs.add(new String[]{"-st", "10:1000"});
+        multiArgs.add(new String[]{"--multi", "5", "-st", "10:1000"});
 
-        singleArgs.add(new String[]{"-st", "10:1000", "--pom", "true"});
-        multiArgs.add(new String[]{"--multi", "5", "-st", "10:1000", "--pom", "true"});
-
-        singleArgs.add(new String[]{"-st", "10:1000", "--pom", "false", "--jar"});
-        multiArgs.add(new String[]{"--multi", "5", "-st", "10:1000", "--pom", "false", "--jar"});
-
-        singleArgs.add(new String[]{"-st", "10:1000", "--pom", "false"});
-        multiArgs.add(new String[]{"--multi", "5", "-st", "10:1000", "--pom", "false"});
-
-        singleArgs.add(new String[]{"-st", "10:1000", "--jar"});
-        multiArgs.add(new String[]{"--multi", "5", "-st", "10:1000", "--jar"});
-
-        singleArgs.add(new String[]{"--coordinates", "src/main/resources/coordinates.txt", "--pom", "true"});
-        multiArgs.add(new String[]{"--multi", "5", "--coordinates", "src/main/resources/coordinates.txt", "--pom", "true"});
-
-        singleArgs.add(new String[]{"--coordinates", "src/main/resources/coordinates.txt", "--pom", "false"});
-        multiArgs.add(new String[]{"--multi", "5", "--coordinates", "src/main/resources/coordinates.txt", "--pom", "false"});
+        singleArgs.add(new String[]{"--coordinates", "src/main/resources/coordinates.txt"});
+        multiArgs.add(new String[]{"--multi", "5", "--coordinates", "src/main/resources/coordinates.txt"});
 
         for(int i = 0; i < singleArgs.size(); i++) {
          try {
@@ -269,6 +250,7 @@ class MavenCentralAnalysisTest {
 
                  }
              };
+             tester.resolvePom = true;
              Map<ArtifactIdent, Artifact> singleResult = tester.runAnalysis(singleArgs.get(i));
              Map<ArtifactIdent, Artifact> multiResult = tester.runAnalysis(multiArgs.get(i));
              assertEquals(singleResult.size(), multiResult.size());
@@ -294,7 +276,8 @@ class MavenCentralAnalysisTest {
 
         };
 
-        assertDoesNotThrow( () -> jarUseCase.runAnalysis(new String[]{"-st", "0:1000", "--jar"}));
+        jarUseCase.resolveJar = true;
+        assertDoesNotThrow( () -> jarUseCase.runAnalysis(new String[]{"-st", "0:1000"}));
 
         MavenCentralAnalysis pomUseCase = new MavenCentralAnalysis() {
             public final Set<License> uniqueLicenses = new HashSet<>();
@@ -313,7 +296,8 @@ class MavenCentralAnalysisTest {
             }
         };
 
-        assertDoesNotThrow( () -> pomUseCase.runAnalysis(new String[]{"-st", "0:1000", "--pom", "false"}));
+        pomUseCase.resolvePom = true;
+        assertDoesNotThrow( () -> pomUseCase.runAnalysis(new String[]{"-st", "0:1000"}));
 
         MavenCentralAnalysis indexUseCase = new MavenCentralAnalysis() {
             public final Set<Artifact> hasJavadocs = new HashSet<>();
@@ -331,7 +315,8 @@ class MavenCentralAnalysisTest {
             }
         };
 
-        assertDoesNotThrow( () -> indexUseCase.runAnalysis(new String[]{"-st", "0:1000", "--index"}));
+        indexUseCase.resolveIndex = true;
+        assertDoesNotThrow( () -> indexUseCase.runAnalysis(new String[]{"-st", "0:1000"}));
     }
 
 }

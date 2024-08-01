@@ -80,8 +80,29 @@ public class JarResolver {
         }
 
         try {
+            boolean output = true;
             URL jarURL = identifier.getMavenCentralJarUri().toURL();
-            List<Tuple2<ClassFile, URL>> classList = readClassesFromJarStream(MavenRepo.openJarFileInputStream(identifier), jarURL);
+            InputStream jarInput = MavenRepo.openJarFileInputStream(identifier);
+            //TODO: move output to mavenCentralAnalysis and into jarResolver constructor
+            if(output) {
+                var baos = new ByteArrayOutputStream();
+                var buffer = new byte[32 * 1024];
+
+                int bytesRead = jarInput.read(buffer);
+
+                while(bytesRead > 0){
+                    baos.write(buffer, 0, bytesRead);
+                    baos.close();
+                    baos.flush();
+                    bytesRead = jarInput.read(buffer);
+                }
+
+                byte[] jarBytes = baos.toByteArray();
+                //TODO: Write to a file
+                jarInput = new ByteArrayInputStream(jarBytes);
+            }
+
+            List<Tuple2<ClassFile, URL>> classList = readClassesFromJarStream(jarInput, jarURL);
             return ArtifactFactory.createArtifact(parsingClassFiles(classList, identifier));
 
         } catch (FileNotFoundException | IOException e) {
@@ -168,6 +189,7 @@ public class JarResolver {
     public List<Tuple2<ClassFile, URL>> readClassesFromJarStream(InputStream jarStream, URL source) throws JarResolutionException {
         var entries = new ArrayList<Tuple2<ClassFile, URL>>();
         JarInputStream jarInputStream;
+
         try {
             jarInputStream = new JarInputStream(jarStream);
             var currentEntry = jarInputStream.getNextJarEntry();

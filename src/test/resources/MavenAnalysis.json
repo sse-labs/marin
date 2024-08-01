@@ -6,10 +6,7 @@
       "-1",
       "-1",
       "null",
-      "null",
-      "true",
-      "true",
-      "false"
+      "null"
     ],
     [
       "-1",
@@ -17,21 +14,7 @@
       "-1",
       "-1",
       "src/test/resources/localPom.xml",
-      "null",
-      "false",
-      "false",
-      "false"
-    ],
-    [
-      "-1",
-      "-1",
-      "-1",
-      "-1",
-      "null",
-      "null",
-      "false",
-      "false",
-      "true"
+      "null"
     ],
     [
       "-1",
@@ -39,10 +22,7 @@
       "-1",
       "-1",
       "src/test/resources/localPom.xml",
-      "src/test/resources/localPom.xml",
-      "false",
-      "true",
-      "true"
+      "src/test/resources/localPom.xml"
     ],
     [
       "-1",
@@ -50,21 +30,7 @@
       "53245",
       "13243",
       "null",
-      "null",
-      "true",
-      "true",
-      "false"
-    ],
-    [
-      "-1",
-      "-1",
-      "-1",
-      "-1",
-      "null",
-      "null",
-      "true",
-      "false",
-      "true"
+      "null"
     ],
     [
       "-1",
@@ -72,10 +38,7 @@
       "-1",
       "-1",
       "src/test/resources/localPom.xml",
-      "src/test/resources/localPom.xml",
-      "false",
-      "false",
-      "false"
+      "src/test/resources/localPom.xml"
     ],
     [
       "-1",
@@ -83,10 +46,7 @@
       "-1",
       "-1",
       "null",
-      "src/test/resources/localPom.xml",
-      "false",
-      "false",
-      "false"
+      "src/test/resources/localPom.xml"
     ]
   ],
   "readIdentsIn" : [
