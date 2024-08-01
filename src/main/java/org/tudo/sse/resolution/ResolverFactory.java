@@ -23,7 +23,7 @@ public class ResolverFactory {
     }
 
     public ResolverFactory(boolean output, Path pathToDirectory, boolean pomIncludeTransitives) {
-        pomResolver = new PomResolver(pomIncludeTransitives);
+        pomResolver = new PomResolver(output, pathToDirectory, pomIncludeTransitives);
         jarResolver = new JarResolver(output, pathToDirectory);
     }
 
@@ -50,6 +50,7 @@ public class ResolverFactory {
             log.error(e);
         }
         try {
+            jarResolver.setOutput(false);
             jarResolver.parseJar(identifier);
         } catch (JarResolutionException e) {
             log.error(e);

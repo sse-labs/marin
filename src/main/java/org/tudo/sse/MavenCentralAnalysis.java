@@ -282,14 +282,14 @@ public abstract class MavenCentralAnalysis {
         while(indexIterator.hasNext()) {
             Artifact current = ArtifactFactory.createArtifact(indexIterator.next());
             artifacts.add(current);
-            processIndex(current);
-            if(artifacts.size() % 500000 == 0) {
-                log.info("{} artifacts have been parsed.", artifacts.size());
+            if(setupInfo.isOutput() && !resolvePom && !resolveJar) {
+                Path filePath = setupInfo.getToOutputDirectory().resolve(current.getIdent().getGroupID() + "-" + current.getIdent().getArtifactID() + "-" + current.getIdent().getVersion() + ".txt");
+                if(!Files.exists(filePath)) {
+                    Files.createFile(filePath);
+                }
             }
+            processIndex(current);
         }
-
-        log.info("{} artifacts collected.", artifacts.get(artifacts.size() - 1).getIndexInformation().getIndex());
-        log.info("{} unique Identifiers.", artifacts.size());
 
         if(setupInfo.isMulti()) {
             queueActorRef.tell(new IndexProcessingMessage("Finished"), ActorRef.noSender());
@@ -315,6 +315,12 @@ public abstract class MavenCentralAnalysis {
         take += indexIterator.getIndex();
         while(indexIterator.hasNext() && indexIterator.getIndex() < take) {
             Artifact current = ArtifactFactory.createArtifact(indexIterator.next());
+            if(setupInfo.isOutput() && !resolvePom && !resolveJar) {
+                Path filePath = setupInfo.getToOutputDirectory().resolve(current.getIdent().getGroupID() + "-" + current.getIdent().getArtifactID() + "-" + current.getIdent().getVersion() + ".txt");
+                if(!Files.exists(filePath)) {
+                    Files.createFile(filePath);
+                }
+            }
             artifacts.add(current);
             processIndex(current);
         }
@@ -348,6 +354,12 @@ public abstract class MavenCentralAnalysis {
             currentToSince = temp.getLastModified();
             if(currentToSince >= since && currentToSince < until) {
                 Artifact current = ArtifactFactory.createArtifact(indexIterator.next());
+                if(setupInfo.isOutput() && !resolvePom && !resolveJar) {
+                    Path filePath = setupInfo.getToOutputDirectory().resolve(current.getIdent().getGroupID() + "-" + current.getIdent().getArtifactID() + "-" + current.getIdent().getVersion() + ".txt");
+                    if(!Files.exists(filePath)) {
+                        Files.createFile(filePath);
+                    }
+                }
                 artifacts.add(current);
                 processIndex(current);
             }
@@ -384,6 +396,12 @@ public abstract class MavenCentralAnalysis {
         while(indexIterator.hasNext()) {
             ArtifactIdent ident = indexIterator.next().getIdent();
             idents.add(ident);
+            if(setupInfo.isOutput() && !resolvePom && !resolveJar) {
+                Path filePath = setupInfo.getToOutputDirectory().resolve(ident.getGroupID() + "-" + ident.getArtifactID() + "-" + ident.getVersion() + ".txt");
+                if(!Files.exists(filePath)) {
+                    Files.createFile(filePath);
+                }
+            }
             processIndexIdentifier(ident);
         }
 
@@ -410,6 +428,12 @@ public abstract class MavenCentralAnalysis {
         while(indexIterator.hasNext() && indexIterator.getIndex() < take) {
             ArtifactIdent ident = indexIterator.next().getIdent();
             idents.add(ident);
+            if(setupInfo.isOutput() && !resolvePom && !resolveJar) {
+                Path filePath = setupInfo.getToOutputDirectory().resolve(ident.getGroupID() + "-" + ident.getArtifactID() + "-" + ident.getVersion() + ".txt");
+                if(!Files.exists(filePath)) {
+                    Files.createFile(filePath);
+                }
+            }
             processIndexIdentifier(ident);
         }
 
@@ -441,6 +465,12 @@ public abstract class MavenCentralAnalysis {
             if(currentToSince >= since && currentToSince < until) {
                 ArtifactIdent ident = temp.getIdent();
                 idents.add(ident);
+                if(setupInfo.isOutput() && !resolvePom && !resolveJar) {
+                    Path filePath = setupInfo.getToOutputDirectory().resolve(ident.getGroupID() + "-" + ident.getArtifactID() + "-" + ident.getVersion() + ".txt");
+                    if(!Files.exists(filePath)) {
+                        Files.createFile(filePath);
+                    }
+                }
                 processIndexIdentifier(ident);
             }
         }

@@ -23,6 +23,8 @@ import scala.Tuple2;
 
 import java.io.*;
 import java.net.SocketException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
 
@@ -31,7 +33,8 @@ import java.util.function.Function;
  * These include the raw features, parent and imports, dependencies, all transitive dependencies, and effective transitive dependencies.
  */
 public class PomResolver {
-
+    private final Path pathToDirectory;
+    private final boolean output;
     private static final MavenCentralRepository MavenRepo = MavenCentralRepository.getInstance();
     private final boolean resolveTransitives;
 
@@ -44,6 +47,74 @@ public class PomResolver {
      * @param resolveTransitives determines if transitive dependencies are to be resolved
      */
     public PomResolver(boolean resolveTransitives) {
+        output = false;
+        pathToDirectory = null;
+        this.resolveTransitives = resolveTransitives;
+        predefinedPomValues = new HashMap<>();
+        predefinedPomValues.put("project.version", pom -> pom.getIdent().getVersion());
+        predefinedPomValues.put("pom.version", pom -> pom.getIdent().getVersion());
+        predefinedPomValues.put("version", pom -> pom.getIdent().getVersion());
+        predefinedPomValues.put("pom.currentVersion", pom -> pom.getIdent().getVersion());
+        predefinedPomValues.put("project.parent.version", pom -> {
+            if (pom.getRawPomFeatures().getParent() != null) {
+                return pom.getRawPomFeatures().getParent().getVersion();
+            } else {
+                return null;
+            }
+        });
+        predefinedPomValues.put("pom.parent.version", pom -> {
+            if (pom.getRawPomFeatures().getParent() != null) {
+                return pom.getRawPomFeatures().getParent().getVersion();
+            } else {
+                return null;
+            }
+        });
+        predefinedPomValues.put("parent.version", pom -> {
+            if (pom.getRawPomFeatures().getParent() != null) {
+                return pom.getRawPomFeatures().getParent().getVersion();
+            } else {
+                return null;
+            }
+        });
+        predefinedPomValues.put("groupId", pom -> pom.getIdent().getGroupID());
+        predefinedPomValues.put("project.groupId", pom -> pom.getIdent().getGroupID());
+        predefinedPomValues.put("pom.groupId", pom -> pom.getIdent().getGroupID());
+        predefinedPomValues.put("project.parent.groupId", pom -> {
+            if (pom.getRawPomFeatures().getParent() != null) {
+                return pom.getRawPomFeatures().getParent().getGroupID();
+            } else {
+                return null;
+            }
+        });
+        predefinedPomValues.put("parent.groupId", pom -> {
+            if (pom.getRawPomFeatures().getParent() != null) {
+                return pom.getRawPomFeatures().getParent().getGroupID();
+            } else {
+                return null;
+            }
+        });
+        predefinedPomValues.put("artifactId", pom -> pom.getIdent().getArtifactID());
+        predefinedPomValues.put("project.artifactId", pom -> pom.getIdent().getArtifactID());
+        predefinedPomValues.put("pom.artifactId", pom -> pom.getIdent().getArtifactID());
+        predefinedPomValues.put("project.parent.artifactId", pom -> {
+            if (pom.getRawPomFeatures().getParent() != null) {
+                return pom.getRawPomFeatures().getParent().getArtifactID();
+            } else {
+                return null;
+            }
+        });
+        predefinedPomValues.put("parent.artifactId", pom -> {
+            if (pom.getRawPomFeatures().getParent() != null) {
+                return pom.getRawPomFeatures().getParent().getArtifactID();
+            } else {
+                return null;
+            }
+        });
+    }
+
+    public PomResolver(boolean output, Path pathToDirectory, boolean resolveTransitives) {
+        this.output = output;
+        this.pathToDirectory = pathToDirectory;
         this.resolveTransitives = resolveTransitives;
         predefinedPomValues = new HashMap<>();
         predefinedPomValues.put("project.version", pom -> pom.getIdent().getVersion());
@@ -148,6 +219,18 @@ public class PomResolver {
      */
     public Artifact resolveArtifact(ArtifactIdent identifier) throws FileNotFoundException, IOException, PomResolutionException {
         Map<ArtifactIdent, Artifact> alrEncountered = new HashMap<>();
+        if(output) {
+            InputStream inputStream = MavenRepo.openPomFileInputStream(identifier);
+
+            byte[] pomBytes = inputStream.readAllBytes();
+
+            Path filePath = pathToDirectory.resolve(identifier.getGroupID() + "-" + identifier.getArtifactID() + "-" + identifier.getVersion() + ".xml");
+            if(!Files.exists(filePath)) {
+                Files.createFile(filePath);
+                Files.write(filePath, pomBytes);
+            }
+        }
+
         Artifact toReturn = processArtifact(identifier);
         toReturn.getPomInformation().setResolvedDependencies(resolveDependencies(toReturn.getPomInformation()));
 

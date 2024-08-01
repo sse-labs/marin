@@ -16,7 +16,7 @@ public class Main {
             System.exit(1);
         }
 
-        OwnImplementation imp = new OwnImplementation();
+        OwnImplementation imp = new OwnImplementation(false, true, false, true);
         try {
             imp.runAnalysis(args);
         } catch (IOException e) {
