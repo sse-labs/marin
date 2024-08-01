@@ -6,6 +6,8 @@
       "-1",
       "-1",
       "null",
+      "null",
+      "false",
       "null"
     ],
     [
@@ -14,6 +16,8 @@
       "-1",
       "-1",
       "src/test/resources/localPom.xml",
+      "null",
+      "false",
       "null"
     ],
     [
@@ -22,7 +26,9 @@
       "-1",
       "-1",
       "src/test/resources/localPom.xml",
-      "src/test/resources/localPom.xml"
+      "src/test/resources/localPom.xml",
+      "false",
+      "null"
     ],
     [
       "-1",
@@ -30,6 +36,8 @@
       "53245",
       "13243",
       "null",
+      "null",
+      "false",
       "null"
     ],
     [
@@ -38,7 +46,9 @@
       "-1",
       "-1",
       "src/test/resources/localPom.xml",
-      "src/test/resources/localPom.xml"
+      "src/test/resources/localPom.xml",
+      "false",
+      "null"
     ],
     [
       "-1",
@@ -46,7 +56,19 @@
       "-1",
       "-1",
       "null",
-      "src/test/resources/localPom.xml"
+      "src/test/resources/localPom.xml",
+      "false",
+      "null"
+    ],
+    [
+      "-1",
+      "-1",
+      "-1",
+      "-1",
+      "null",
+      "null",
+      "true",
+      "maven-resolution-files"
     ]
   ],
   "readIdentsIn" : [

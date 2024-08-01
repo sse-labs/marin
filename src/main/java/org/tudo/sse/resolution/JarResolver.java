@@ -24,8 +24,10 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.jar.JarInputStream;
 
@@ -36,9 +38,22 @@ import scala.collection.JavaConverters;
  * @see JarInformation
  */
 public class JarResolver {
+    private final Path pathToDirectory;
+    private final boolean output;
     private final Java16LibraryFramework cfReader = Project$.MODULE$.JavaClassFileReader(GlobalLogContext$.MODULE$, package$.MODULE$.BaseConfig());
     private static final MavenCentralRepository MavenRepo = MavenCentralRepository.getInstance();
     private static final Logger log = LogManager.getLogger(JarResolver.class);
+
+    public JarResolver() {
+        this.output = false;
+        pathToDirectory = null;
+    }
+
+    public JarResolver(boolean output, Path pathToDirectory) {
+        this.output = output;
+        this.pathToDirectory = pathToDirectory;
+    }
+
 
     /**
      * This method resolves jar artifacts from a given list of artifact identifiers.

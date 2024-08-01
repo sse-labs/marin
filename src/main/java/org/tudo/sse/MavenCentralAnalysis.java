@@ -100,6 +100,10 @@ public abstract class MavenCentralAnalysis {
                         setupInfo.setMulti(true);
                         setupInfo.setThreads(parseInt(args, i));
                         break;
+                    case "--output":
+                        setupInfo.setOutput(true);
+                        setupInfo.setToOutputDirectory(parsePathName(args, i));
+                        break;
                     default:
                         throw new CLIException(args[i]);
                 }
@@ -157,24 +161,11 @@ public abstract class MavenCentralAnalysis {
         }
     }
 
-    private boolean parseBoolean(String[] args, int i) throws CLIException {
-        if(i + 1 < args.length) {
-            String toParse = args[i + 1];
-            if(toParse.toLowerCase().charAt(0) == 't') {
-                return true;
-            } else if(toParse.toLowerCase().charAt(0) == 'f') {
-                return false;
-            } else {
-                throw new CLIException(args[i]);
-            }
-        } else {
-            throw new CLIException(args[i]);
-        }
-    }
-
     private Path parsePathName(String[] args, int i) throws CLIException {
         if(i + 1 < args.length) {
-            if(Files.exists(Paths.get(args[i + 1])) || args[i].equals("--name")) {
+            if(Files.isRegularFile(Paths.get(args[i + 1])) || args[i].equals("--name")) {
+                return Paths.get(args[i + 1]);
+            } else if(args[i].equals("--output") && Files.isDirectory(Paths.get(args[i + 1]))) {
                 return Paths.get(args[i + 1]);
             } else {
                 throw new CLIException(args[i], "Invalid path");
@@ -195,10 +186,12 @@ public abstract class MavenCentralAnalysis {
      * @throws IOException when there is an issue opening a file
      */
     public Map<ArtifactIdent, Artifact> runAnalysis(String[] args) throws URISyntaxException, IOException {
-
-        //set up config from cli
         parseCmdLine(args);
-        resolverFactory = new ResolverFactory(processTransitives);
+        if(setupInfo.isOutput()) {
+            resolverFactory = new ResolverFactory(setupInfo.isOutput(), setupInfo.getToOutputDirectory(), processTransitives);
+        } else {
+            resolverFactory = new ResolverFactory(processTransitives);
+        }
 
         if(setupInfo.isMulti()) {
             ActorSystem system = ActorSystem.create("my-system");
@@ -215,7 +208,6 @@ public abstract class MavenCentralAnalysis {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
         } else {
             if(setupInfo.getToCoordinates() == null) {
                 indexProcessor();

@@ -47,6 +47,8 @@ class MavenCentralAnalysisTest {
         cliInputs.add(args);
         args = new String[]{"-ip", "src/test/resources/localPom.xml"};
         cliInputs.add(args);
+        args = new String[]{"--output", "maven-resolution-files"};
+        cliInputs.add(args);
 
         List<List<String>> expected = (List<List<String>>) json.get("cliParsePos");
 
@@ -77,6 +79,14 @@ class MavenCentralAnalysisTest {
                 assertEquals(currentExp.get(5), result.getToIndexPos().toString());
             } else {
                 assertEquals(currentExp.get(5), "null");
+            }
+
+            assertEquals(Boolean.parseBoolean(currentExp.get(6)), result.isOutput());
+
+            if(result.getToOutputDirectory() != null) {
+                assertEquals(currentExp.get(7), result.getToOutputDirectory().toString());
+            } else {
+                assertEquals(currentExp.get(7), "null");
             }
 
             i++;
