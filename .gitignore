@@ -31,3 +31,6 @@ target
 
 # LastIndexProcessed
 lastIndexProcessed
+
+#maven resolution files
+maven-resolution-files

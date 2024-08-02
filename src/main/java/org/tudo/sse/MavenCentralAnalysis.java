@@ -100,6 +100,10 @@ public abstract class MavenCentralAnalysis {
                         setupInfo.setMulti(true);
                         setupInfo.setThreads(parseInt(args, i));
                         break;
+                    case "--output":
+                        setupInfo.setOutput(true);
+                        setupInfo.setToOutputDirectory(parsePathName(args, i));
+                        break;
                     default:
                         throw new CLIException(args[i]);
                 }
@@ -157,24 +161,11 @@ public abstract class MavenCentralAnalysis {
         }
     }
 
-    private boolean parseBoolean(String[] args, int i) throws CLIException {
-        if(i + 1 < args.length) {
-            String toParse = args[i + 1];
-            if(toParse.toLowerCase().charAt(0) == 't') {
-                return true;
-            } else if(toParse.toLowerCase().charAt(0) == 'f') {
-                return false;
-            } else {
-                throw new CLIException(args[i]);
-            }
-        } else {
-            throw new CLIException(args[i]);
-        }
-    }
-
     private Path parsePathName(String[] args, int i) throws CLIException {
         if(i + 1 < args.length) {
-            if(Files.exists(Paths.get(args[i + 1])) || args[i].equals("--name")) {
+            if(Files.isRegularFile(Paths.get(args[i + 1])) || args[i].equals("--name")) {
+                return Paths.get(args[i + 1]);
+            } else if(args[i].equals("--output") && Files.isDirectory(Paths.get(args[i + 1]))) {
                 return Paths.get(args[i + 1]);
             } else {
                 throw new CLIException(args[i], "Invalid path");
@@ -195,10 +186,12 @@ public abstract class MavenCentralAnalysis {
      * @throws IOException when there is an issue opening a file
      */
     public Map<ArtifactIdent, Artifact> runAnalysis(String[] args) throws URISyntaxException, IOException {
-
-        //set up config from cli
         parseCmdLine(args);
-        resolverFactory = new ResolverFactory(processTransitives);
+        if(setupInfo.isOutput()) {
+            resolverFactory = new ResolverFactory(setupInfo.isOutput(), setupInfo.getToOutputDirectory(), processTransitives);
+        } else {
+            resolverFactory = new ResolverFactory(processTransitives);
+        }
 
         if(setupInfo.isMulti()) {
             ActorSystem system = ActorSystem.create("my-system");
@@ -215,7 +208,6 @@ public abstract class MavenCentralAnalysis {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
         } else {
             if(setupInfo.getToCoordinates() == null) {
                 indexProcessor();
@@ -290,14 +282,14 @@ public abstract class MavenCentralAnalysis {
         while(indexIterator.hasNext()) {
             Artifact current = ArtifactFactory.createArtifact(indexIterator.next());
             artifacts.add(current);
-            processIndex(current);
-            if(artifacts.size() % 500000 == 0) {
-                log.info("{} artifacts have been parsed.", artifacts.size());
+            if(setupInfo.isOutput() && !resolvePom && !resolveJar) {
+                Path filePath = setupInfo.getToOutputDirectory().resolve(current.getIdent().getGroupID() + "-" + current.getIdent().getArtifactID() + "-" + current.getIdent().getVersion() + ".txt");
+                if(!Files.exists(filePath)) {
+                    Files.createFile(filePath);
+                }
             }
+            processIndex(current);
         }
-
-        log.info("{} artifacts collected.", artifacts.get(artifacts.size() - 1).getIndexInformation().getIndex());
-        log.info("{} unique Identifiers.", artifacts.size());
 
         if(setupInfo.isMulti()) {
             queueActorRef.tell(new IndexProcessingMessage("Finished"), ActorRef.noSender());
@@ -323,6 +315,12 @@ public abstract class MavenCentralAnalysis {
         take += indexIterator.getIndex();
         while(indexIterator.hasNext() && indexIterator.getIndex() < take) {
             Artifact current = ArtifactFactory.createArtifact(indexIterator.next());
+            if(setupInfo.isOutput() && !resolvePom && !resolveJar) {
+                Path filePath = setupInfo.getToOutputDirectory().resolve(current.getIdent().getGroupID() + "-" + current.getIdent().getArtifactID() + "-" + current.getIdent().getVersion() + ".txt");
+                if(!Files.exists(filePath)) {
+                    Files.createFile(filePath);
+                }
+            }
             artifacts.add(current);
             processIndex(current);
         }
@@ -356,6 +354,12 @@ public abstract class MavenCentralAnalysis {
             currentToSince = temp.getLastModified();
             if(currentToSince >= since && currentToSince < until) {
                 Artifact current = ArtifactFactory.createArtifact(indexIterator.next());
+                if(setupInfo.isOutput() && !resolvePom && !resolveJar) {
+                    Path filePath = setupInfo.getToOutputDirectory().resolve(current.getIdent().getGroupID() + "-" + current.getIdent().getArtifactID() + "-" + current.getIdent().getVersion() + ".txt");
+                    if(!Files.exists(filePath)) {
+                        Files.createFile(filePath);
+                    }
+                }
                 artifacts.add(current);
                 processIndex(current);
             }
@@ -392,6 +396,12 @@ public abstract class MavenCentralAnalysis {
         while(indexIterator.hasNext()) {
             ArtifactIdent ident = indexIterator.next().getIdent();
             idents.add(ident);
+            if(setupInfo.isOutput() && !resolvePom && !resolveJar) {
+                Path filePath = setupInfo.getToOutputDirectory().resolve(ident.getGroupID() + "-" + ident.getArtifactID() + "-" + ident.getVersion() + ".txt");
+                if(!Files.exists(filePath)) {
+                    Files.createFile(filePath);
+                }
+            }
             processIndexIdentifier(ident);
         }
 
@@ -418,6 +428,12 @@ public abstract class MavenCentralAnalysis {
         while(indexIterator.hasNext() && indexIterator.getIndex() < take) {
             ArtifactIdent ident = indexIterator.next().getIdent();
             idents.add(ident);
+            if(setupInfo.isOutput() && !resolvePom && !resolveJar) {
+                Path filePath = setupInfo.getToOutputDirectory().resolve(ident.getGroupID() + "-" + ident.getArtifactID() + "-" + ident.getVersion() + ".txt");
+                if(!Files.exists(filePath)) {
+                    Files.createFile(filePath);
+                }
+            }
             processIndexIdentifier(ident);
         }
 
@@ -449,6 +465,12 @@ public abstract class MavenCentralAnalysis {
             if(currentToSince >= since && currentToSince < until) {
                 ArtifactIdent ident = temp.getIdent();
                 idents.add(ident);
+                if(setupInfo.isOutput() && !resolvePom && !resolveJar) {
+                    Path filePath = setupInfo.getToOutputDirectory().resolve(ident.getGroupID() + "-" + ident.getArtifactID() + "-" + ident.getVersion() + ".txt");
+                    if(!Files.exists(filePath)) {
+                        Files.createFile(filePath);
+                    }
+                }
                 processIndexIdentifier(ident);
             }
         }

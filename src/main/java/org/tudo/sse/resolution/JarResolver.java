@@ -24,8 +24,11 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.jar.JarInputStream;
 
@@ -36,9 +39,25 @@ import scala.collection.JavaConverters;
  * @see JarInformation
  */
 public class JarResolver {
+    private final Path pathToDirectory;
+    private boolean output;
     private final Java16LibraryFramework cfReader = Project$.MODULE$.JavaClassFileReader(GlobalLogContext$.MODULE$, package$.MODULE$.BaseConfig());
     private static final MavenCentralRepository MavenRepo = MavenCentralRepository.getInstance();
     private static final Logger log = LogManager.getLogger(JarResolver.class);
+
+    public JarResolver() {
+        output = false;
+        pathToDirectory = null;
+    }
+
+    public JarResolver(boolean output, Path pathToDirectory) {
+        this.output = output;
+        this.pathToDirectory = pathToDirectory;
+    }
+
+    public void setOutput(boolean output) {
+        this.output = output;
+    }
 
     /**
      * This method resolves jar artifacts from a given list of artifact identifiers.
@@ -80,10 +99,8 @@ public class JarResolver {
         }
 
         try {
-            boolean output = true;
             URL jarURL = identifier.getMavenCentralJarUri().toURL();
             InputStream jarInput = MavenRepo.openJarFileInputStream(identifier);
-            //TODO: move output to mavenCentralAnalysis and into jarResolver constructor
             if(output) {
                 var baos = new ByteArrayOutputStream();
                 var buffer = new byte[32 * 1024];
@@ -98,7 +115,13 @@ public class JarResolver {
                 }
 
                 byte[] jarBytes = baos.toByteArray();
-                //TODO: Write to a file
+
+                Path filePath = pathToDirectory.resolve(identifier.getGroupID() + "-" + identifier.getArtifactID() + "-" + identifier.getVersion() + ".jar");
+                if(!Files.exists(filePath)) {
+                    Files.createFile(filePath);
+                    Files.write(filePath, jarBytes);
+                }
+
                 jarInput = new ByteArrayInputStream(jarBytes);
             }
 

@@ -14,6 +14,7 @@ import scala.Tuple2;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -48,38 +49,46 @@ class MavenCentralAnalysisTest {
         args = new String[]{"-ip", "src/test/resources/localPom.xml"};
         cliInputs.add(args);
 
-        List<List<String>> expected = (List<List<String>>) json.get("cliParsePos");
+        try {
+            Path tmpDir = Files.createTempDirectory("maven-resolution-files");
+            args = new String[]{"--output", tmpDir.toString()};
+            cliInputs.add(args);
+            List<List<String>> expected = (List<List<String>>) json.get("cliParsePos");
 
-        int i = 0;
-        for(String[] input : cliInputs) {
-            MavenCentralAnalysis tester = new MavenCentralAnalysis() {
-                @Override
-                public void analyzeArtifact(Artifact current) {
+            int i = 0;
+            for(String[] input : cliInputs) {
+                MavenCentralAnalysis tester = new MavenCentralAnalysis() {
+                    @Override
+                    public void analyzeArtifact(Artifact current) {
 
+                    }
+                };
+                tester.parseCmdLine(input);
+                CliInformation result = tester.getSetupInfo();
+                List<String> currentExp = expected.get(i);
+                //run asserts here
+                assertEquals(Integer.parseInt(currentExp.get(0)), result.getSkip());
+                assertEquals(Integer.parseInt(currentExp.get(1)), result.getTake());
+                assertEquals(Integer.parseInt(currentExp.get(2)), result.getSince());
+                assertEquals(Integer.parseInt(currentExp.get(3)), result.getUntil());
+
+                if(result.getToCoordinates() != null) {
+                    assertEquals(currentExp.get(4), result.getToCoordinates().toString());
+                } else {
+                    assertEquals(currentExp.get(4), "null");
                 }
-            };
-            tester.parseCmdLine(input);
-            CliInformation result = tester.getSetupInfo();
-            List<String> currentExp = expected.get(i);
-            //run asserts here
-            assertEquals(Integer.parseInt(currentExp.get(0)), result.getSkip());
-            assertEquals(Integer.parseInt(currentExp.get(1)), result.getTake());
-            assertEquals(Integer.parseInt(currentExp.get(2)), result.getSince());
-            assertEquals(Integer.parseInt(currentExp.get(3)), result.getUntil());
 
-            if(result.getToCoordinates() != null) {
-                assertEquals(currentExp.get(4), result.getToCoordinates().toString());
-            } else {
-                assertEquals(currentExp.get(4), "null");
+                if(result.getToIndexPos() != null) {
+                    assertEquals(currentExp.get(5), result.getToIndexPos().toString());
+                } else {
+                    assertEquals(currentExp.get(5), "null");
+                }
+
+                assertEquals(Boolean.parseBoolean(currentExp.get(6)), result.isOutput());
+                i++;
             }
-
-            if(result.getToIndexPos() != null) {
-                assertEquals(currentExp.get(5), result.getToIndexPos().toString());
-            } else {
-                assertEquals(currentExp.get(5), "null");
-            }
-
-            i++;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
     }

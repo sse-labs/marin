@@ -15,6 +15,8 @@ public class CliInformation {
     private Path name;
     private Path toCoordinates;
     private Path toIndexPos;
+    private boolean output;
+    private Path toOutputDirectory;
     private boolean multi;
     private int threads;
 
@@ -26,6 +28,8 @@ public class CliInformation {
         name = Paths.get("lastIndexProcessed");
         toCoordinates = null;
         toIndexPos = null;
+        toOutputDirectory = null;
+        output = false;
         multi = false;
     }
 
@@ -99,5 +103,21 @@ public class CliInformation {
 
     public void setThreads(int threads) {
         this.threads = threads;
+    }
+
+    public boolean isOutput() {
+        return output;
+    }
+
+    public void setOutput(boolean output) {
+        this.output = output;
+    }
+
+    public Path getToOutputDirectory() {
+        return toOutputDirectory;
+    }
+
+    public void setToOutputDirectory(Path toOutputDirectory) {
+        this.toOutputDirectory = toOutputDirectory;
     }
 }
