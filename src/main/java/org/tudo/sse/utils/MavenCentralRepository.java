@@ -28,6 +28,11 @@ public class MavenCentralRepository {
         return ResourceConnections.openInputStream(ident.getMavenCentralXMLUri());
     }
 
+    public long getLastModified(ArtifactIdent ident) throws FileNotFoundException, IOException {
+        HttpURLConnection connection = ResourceConnections.openConnection(ident.getMavenCentralPomUri());
+        return connection.getLastModified();
+    }
+
     public InputStream openPomFileInputStream(ArtifactIdent ident) throws FileNotFoundException, IOException {
         return ResourceConnections.openInputStream(ident.getMavenCentralPomUri());
     }
