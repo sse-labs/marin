@@ -3,12 +3,16 @@ package org.tudo.sse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.tudo.sse.model.Artifact;
-import org.tudo.sse.resolution.PomResolutionException;
+import org.tudo.sse.model.ArtifactIdent;
+import org.tudo.sse.model.jar.ClassFileNode;
+import org.tudo.sse.model.jar.FoundInfoNode;
+import org.tudo.sse.resolution.*;
 import org.tudo.sse.utils.GAUtils;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Map;
 
 public class Main {
 
