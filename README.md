@@ -120,15 +120,9 @@ These include:
 - name
   - description: Specify a file path / file name to write the lastIndexProcessed information out to.
   - usage: ```--name path/to/file ```
-- index
-  - description: Specify whether indexInformation should be collected or just the artifact identifiers.
-  - usage: ```--index ```
-- pom
-  - description: Specify whether to run the pom resolver, with or without transitive dependency resolution.
-  - usage: ```--pom bool```
-- jar
-  - description: Specify whether to run the jar resolver.
-  - usage: ```--jar ```
+- output
+  - description: Specify whether to write files that resolution is being performed on out to a directory.
+  - usage: ```--output path/to/dir ```
 - multi
   - description: Specify to run the multithreaded implementation, and how many threads should be used
   -  usage: ```--multi threads```
