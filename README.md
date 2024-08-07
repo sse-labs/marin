@@ -15,7 +15,7 @@ For these examples, these will perform the analysis on the first 1000 artifacts.
 2. Run the executable with the given cli
 
 ### Counting all classFiles from jar artifacts:
-```
+``` java
 public class ExampleImplementation() extends MavenCentralAnalysis {
     private long numberOfClassfiles;
     
@@ -40,7 +40,7 @@ public class ExampleImplementation() extends MavenCentralAnalysis {
 ```java -jar executableName --jar -st 0:1000```
 
 ### Find all Unique Licenses from pom artifacts
-```
+``` java
 public class ExampleImplementation() extends MavenCentralAnalysis {
     private Set<License> uniqueLicenses;
 
@@ -71,7 +71,7 @@ public class ExampleImplementation() extends MavenCentralAnalysis {
 ```java -jar executableName --pom false -st 0:1000```
 
 ### Collect all artifacts that have javadocs
-```
+``` java
 public class ExampleImplementation() extends MavenCentralAnalysis {
     private Set<Artifact> hasJavadocs;
 
