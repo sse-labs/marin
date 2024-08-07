@@ -1,0 +1,67 @@
+{
+    "artifact1" : {
+      "test1" : {
+        "name" : "org/bouncycastle/bcpg/UserAttributeSubpacket",
+        "child" : {
+          "name" : "org/bouncycastle/bcpg/attr/ImageAttribute"
+        }
+      },
+      "test2" : {
+        "name" : "org/bouncycastle/openpgp/operator/bc/BcAEADUtil$1",
+        "interfaces" : [
+          {
+            "name" : "org/bouncycastle/openpgp/operator/bc/BcAEADUtil$Engine",
+            "super" : "java/lang/Object"
+          }
+        ]
+      },
+      "test3" : {
+        "name" : "org/bouncycastle/openpgp/PGPEncryptedData",
+        "interfaces" : [
+          {
+            "name" : "org/bouncycastle/bcpg/SymmetricKeyAlgorithmTags",
+            "super" : "java/lang/Object"
+          },
+          {
+            "name" : "org/bouncycastle/bcpg/AEADAlgorithmTags",
+            "super" : "java/lang/Object"
+          }
+        ]
+      }
+    },
+    "artifact2" : {
+        "test1" : {
+          "name" : "reactor/core/observability/DefaultSignalListener",
+          "children" : [
+            {
+              "name" : "org/springframework/web/filter/reactive/ServerHttpObservationFilter$ObservationSignalListener"
+            },
+            {
+              "name" : "org/springframework/web/server/adapter/HttpWebHandlerAdapter$ObservationSignalListener"
+            }
+          ]
+        },
+      "test2" : {
+        "name" : "java/lang/RuntimeException",
+        "children" : [
+          {
+            "name" : "org/springframework/core/NestedRuntimeException",
+            "children" : [
+              {
+                "name" : "org/springframework/beans/BeansException"
+              }
+            ]
+          }
+        ]
+      },
+      "test3" : {
+          "name" : "org/springframework/web/context/request/AbstractRequestAttributesScope",
+        "interfaces" : [
+          {
+            "name" : "org/springframework/beans/factory/config/Scope",
+            "super" : "java/lang/Object"
+          }
+        ]
+      }
+    }
+}
