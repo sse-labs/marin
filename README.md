@@ -1,11 +1,43 @@
 # Maven Central Research Interface
-An interface focused on creating an easy way to index and retrieve data from the Maven Central repository.
+An interface focused on creating an accessible and scalable way to do research on artifacts on the Maven Central repository. The MCRI contains an overarching implementation of the different modules in the interface, allowing for quick and repeated analysis runs to be performed. 
 
 ## Required Java Version
   The Maven Central Research Interface requires Java 11.
 
+## MavenCentralAnalysis
+An abstract class that can be extended to easily run a multitude of analyses on artifacts of the Maven Central repository. Boolean values are used to control which type of information to collect (index, pom, jar) and a cli is in place to configure other aspects of the run.
+
+The boolean values to be set include:
+- index: sets if metadata from the Maven Central Index should be collected
+- pom: sets if pom artifacts are to be resolved
+- transitive: sets if transitive dependencies should be resolved if pom artifacts are also being resolved
+- jar: sets if jar artifacts are to be resolved
+
+The CLI includes the following:
+- skip/take
+  - description: Set how many artifacts to skip from the beginning of the index, and how many indexes to attempt to resolve.
+  - usage: ```-st skip:take```
+- since/until
+  - description: Filter the artifact identifiers collected by a given lastModified range.
+  - usage: ```-su since:until ```
+- coordinates
+  - description: Specify a path to a file containing artifact identifiers to resolve. 
+  - usage: ```--coordinates path/to/file```
+- lastIndexProcessed
+  - description: Specify a file path containing which index was last processed, in order to skip already processed indexes
+  - usage: ```-ip path/to/file ``` 
+- name
+  - description: Specify a file path / file name to write the lastIndexProcessed information out to.
+  - usage: ```--name path/to/file ```
+- output
+  - description: Specify whether to write files that resolution is being performed on out to a directory.
+  - usage: ```--output path/to/dir ```
+- multi
+  - description: Specify to run the multithreaded implementation, and how many threads should be used
+  -  usage: ```--multi threads```
+
 ## Usage
-To use Maven Central Research Interface extend the Maven Central Analysis class and implement the analyzeArtifact() method with the data that you are trying to extract. From there create an instance of your implementation in main, then build the project, and use the cli described below to run the different configurations.
+To use Maven Central Research Interface extend the Maven Central Analysis class and implement the analyzeArtifact() method with the data that you are trying to extract. From there create an instance of your implementation in main, then build the project, and use the cli to fully customize the analysis.
 
 ```java -jar executableName *INSERT CLI HERE* ```
 
@@ -101,38 +133,12 @@ public class ExampleImplementation() extends MavenCentralAnalysis {
 
  ```java -jar executableName --index -st 0:1000```
 
-## MavenCentralAnalysis
-An abstract class that can be extended to easily run a multitude of analyses on artifacts of the Maven Central repository. This is an encapsulation of the components defined below.
-
-These include:
-- skip/take
-  - description: Set how many artifacts to skip from the beginning of the index, and how many indexes to attempt to resolve.
-  - usage: ```-st skip:take```
-- since/until
-  - description: Filter the artifact identifiers collected by a given lastModified range.
-  - usage: ```-su since:until ```
-- coordinates
-  - description: Specify a path to a file containing artifact identifiers to resolve. 
-  - usage: ```--coordinates path/to/file```
-- lastIndexProcessed
-  - description: Specify a file path containing which index was last processed, in order to skip already processed indexes
-  - usage: ```-ip path/to/file ``` 
-- name
-  - description: Specify a file path / file name to write the lastIndexProcessed information out to.
-  - usage: ```--name path/to/file ```
-- output
-  - description: Specify whether to write files that resolution is being performed on out to a directory.
-  - usage: ```--output path/to/dir ```
-- multi
-  - description: Specify to run the multithreaded implementation, and how many threads should be used
-  -  usage: ```--multi threads```
-
 
 ## IndexWalker
-This part of the interface enables an easy traversal and collection of information from the Maven Central Indexer.
+This part of the interface enables an easy traversal and collection of information from the Maven Central Index. This relies on the IndexIterator which traverses the index storing the values of artifacts with the same identifier in a single artifact objects as a list of packages (representation of each unique artifact under the same identifier).
 
 ### Data Extracted
-For each Artifact these are the attributes that are collected, with some artifacts having more than one package.
+For each Artifact these are the attributes that are collected:
 
 - GroupID : ArtifactID : Version
 - Name
@@ -164,7 +170,7 @@ IndexWalker can be implemented into mining software for the iteration and collec
 
 
 ## Pom Resolver
-The pom resolver allows for easy collection of raw pom features and resolution of others through parent and dependency resolution.
+The pom resolver allows for easy collection of raw pom features and resolved features. The raw pom features are collected using the Maven-Model library by apache, these features are resolved by collecting parent and import poms, and using them in resolution to find any implicitly defined values.
 
 ### Raw Features
 For each Pom file resolved these are the raw features that are collected:
