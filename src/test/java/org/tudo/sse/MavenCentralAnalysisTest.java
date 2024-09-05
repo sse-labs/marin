@@ -73,13 +73,13 @@ class MavenCentralAnalysisTest {
                 assertEquals(Integer.parseInt(currentExp.get(3)), result.getUntil());
 
                 if(result.getToCoordinates() != null) {
-                    assertEquals(currentExp.get(4), result.getToCoordinates().toString());
+                    assertEquals(currentExp.get(4), result.getToCoordinates().toString().replace("\\","/"));
                 } else {
                     assertEquals(currentExp.get(4), "null");
                 }
 
                 if(result.getToIndexPos() != null) {
-                    assertEquals(currentExp.get(5), result.getToIndexPos().toString());
+                    assertEquals(currentExp.get(5), result.getToIndexPos().toString().replace("\\","/"));
                 } else {
                     assertEquals(currentExp.get(5), "null");
                 }

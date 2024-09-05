@@ -343,9 +343,9 @@
       "log4j:log4j:1.2.16:compile",
       "org.eclipse.xtext:org.eclipse.xtext.xbase:2.6.2:compile",
       "org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.6.2:compile",
-      "org.eclipse.emf:org.eclipse.emf.common:2.30.0:compile",
-      "org.eclipse.emf:org.eclipse.emf.ecore:2.36.0:compile",
-      "org.eclipse.emf:org.eclipse.emf.codegen:2.23.0:runtime",
+      "org.eclipse.emf:org.eclipse.emf.common:2.31.0:compile",
+      "org.eclipse.emf:org.eclipse.emf.ecore:2.37.0:compile",
+      "org.eclipse.emf:org.eclipse.emf.codegen:2.24.0:runtime",
       "com.google.inject:guice:3.0:compile",
       "com.google.guava:guava:14.0.1:compile"
     ]
@@ -362,7 +362,7 @@
       "org.springframework.boot:spring-boot-starter-web:2.5.0:compile",
       "com.fasterxml.jackson.core:jackson-databind:2.10.0:compile",
       "org.hibernate:hibernate-core:5.3.0.CR2:compile",
-      "com.google.guava:guava:33.2.1-jre:compile",
+      "com.google.guava:guava:33.3.0-jre:compile",
       "org.apache.httpcomponents:httpclient:4.5.13:compile",
       "commons-io:commons-io:2.16.1:compile"
     ]
