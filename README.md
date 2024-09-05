@@ -1,8 +1,8 @@
-# Maven Central Research Interface
-An interface focused on creating an accessible and scalable way to do research on artifacts on the Maven Central repository. The MCRI contains an overarching implementation of the different modules in the interface, allowing for quick and repeated analysis runs to be performed. 
+# MARIN (MAven Research INterface)
+An interface focused on creating an accessible and scalable way to do research on artifacts on the Maven Central repository. MARIN contains an overarching implementation of the different modules in the interface, allowing for quick and repeated analysis runs to be performed. 
 
 ## Required Java Version
-  The Maven Central Research Interface requires Java 11.
+The Maven Research Interface requires Java 11.
 
 ## MavenCentralAnalysis
 An abstract class that can be extended to easily run a multitude of analyses on artifacts of the Maven Central repository. Boolean values are used to control which type of information to collect (index, pom, jar) and a cli is in place to configure other aspects of the run.
@@ -37,7 +37,7 @@ The CLI includes the following:
   -  usage: ```--multi threads```
 
 ## Usage
-To use Maven Central Research Interface extend the Maven Central Analysis class and implement the analyzeArtifact() method with the data that you are trying to extract. From there create an instance of your implementation in main, then build the project, and use the cli to fully customize the analysis.
+To use MARIN, extend the Maven Central Analysis class and implement the analyzeArtifact() method with the data that you are trying to extract. From there create an instance of your implementation in main, then build the project, and use the cli to fully customize the analysis.
 
 ```java -jar executableName *INSERT CLI HERE* ```
 
