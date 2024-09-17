@@ -21,6 +21,12 @@ public class ArtifactIdent {
      * The specific artifact identifier.
      */
     private String artifactID;
+
+    /**
+     * The GA tuple of this artifact
+     */
+    private String GA;
+
     /**
      * The version of the artifact.
      */
@@ -35,6 +41,7 @@ public class ArtifactIdent {
     public ArtifactIdent(String groupID, String artifactID, String version) {
         this.artifactID = artifactID;
         this.groupID = groupID;
+        this.GA = groupID + ":" + artifactID;
         this.version = version;
         this.repository = "https://repo1.maven.org/maven2/";
     }
@@ -44,6 +51,7 @@ public class ArtifactIdent {
         this.artifactID = toCopy.artifactID;
         this.version = toCopy.version;
         this.repository = toCopy.repository;
+        this.GA = toCopy.getGA();
     }
 
     /**
@@ -60,6 +68,7 @@ public class ArtifactIdent {
      */
     public void setGroupID(String groupID) {
         this.groupID = groupID;
+        this.GA = this.groupID + ":" + this.artifactID;
     }
 
     /**
@@ -76,8 +85,16 @@ public class ArtifactIdent {
      */
     public void setArtifactID(String artifactID) {
         this.artifactID = artifactID;
+        this.GA = this.groupID + ":" + this.artifactID;
     }
 
+    /**
+     * Gets GA tuple for this artifact.
+     * @return GA tuple separated by colon
+     */
+    public String getGA(){
+        return this.GA;
+    }
     /**
      * Gets the version.
      * @return version

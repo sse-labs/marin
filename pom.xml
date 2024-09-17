@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.tudo.sse</groupId>
-    <artifactId>Maven-Central-Research-Interface</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>marin</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>

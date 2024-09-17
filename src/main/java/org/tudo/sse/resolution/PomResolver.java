@@ -220,14 +220,14 @@ public class PomResolver {
     public Artifact resolveArtifact(ArtifactIdent identifier) throws FileNotFoundException, IOException, PomResolutionException {
         Map<ArtifactIdent, Artifact> alrEncountered = new HashMap<>();
         if(output) {
-            InputStream inputStream = MavenRepo.openPomFileInputStream(identifier);
+            try(InputStream inputStream = MavenRepo.openPomFileInputStream(identifier)){
+                byte[] pomBytes = inputStream.readAllBytes();
 
-            byte[] pomBytes = inputStream.readAllBytes();
-
-            Path filePath = pathToDirectory.resolve(identifier.getGroupID() + "-" + identifier.getArtifactID() + "-" + identifier.getVersion() + ".xml");
-            if(!Files.exists(filePath)) {
-                Files.createFile(filePath);
-                Files.write(filePath, pomBytes);
+                Path filePath = pathToDirectory.resolve(identifier.getGroupID() + "-" + identifier.getArtifactID() + "-" + identifier.getVersion() + ".xml");
+                if(!Files.exists(filePath)) {
+                    Files.createFile(filePath);
+                    Files.write(filePath, pomBytes);
+                }
             }
         }
 
@@ -346,14 +346,14 @@ public class PomResolver {
 
             ArtifactIdent currentID = new ArtifactIdent(dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion());
             String scope = null;
-            List<String> exclusions = null;
+            Set<String> exclusions = null;
 
             if(dependency.getScope() != null) {
                 scope = dependency.getScope();
             }
 
             if(dependency.getExclusions() != null) {
-                exclusions = new ArrayList<>();
+                exclusions = new HashSet<>();
                 for(Exclusion exclusion : dependency.getExclusions()) {
                     exclusions.add(exclusion.getGroupId() + ":" + exclusion.getArtifactId());
                 }
@@ -800,16 +800,30 @@ public class PomResolver {
     /**
      * This method resolves all the transitive dependencies of a given artifact. This is done recursively working with resolveTransitives and the recursiveHandler.
      *
-     * @param current the current artifact transitive dependencies are being resolved for.
-     * @param alrEncountered a map of dependencies that have already been resolved to avoid double resolutions
-     * @param exclusions a list of artifacts to not include in resolution
+     * @param toResolve the current artifact transitive dependencies are being resolved for.
      * @throws IOException thrown when there's an issue opening the pom for an artifact
      */
-    public void resolveAllTransitives(Artifact current, Map<ArtifactIdent, Artifact> alrEncountered, List<String> exclusions) throws IOException {
+    public void resolveAllTransitives(Artifact toResolve) throws IOException {
+        resolveAllTransitives(toResolve, new HashMap<>(), null);
+    }
+
+    /**
+     * This method resolves all the transitive dependencies of a given artifact. This is done recursively working with resolveTransitives and the recursiveHandler.
+     *
+     * @param current the current artifact transitive dependencies are being resolved for.
+     * @param alrEncountered a map of dependencies that have already been resolved to avoid double resolutions
+     * @param exclusions a Set of G:A values to not include in resolution
+     * @throws IOException thrown when there's an issue opening the pom for an artifact
+     */
+    public void resolveAllTransitives(Artifact current, Map<ArtifactIdent, Artifact> alrEncountered, Set<String> exclusions) throws IOException {
         List<Artifact> transitives = new ArrayList<>();
         for (org.tudo.sse.model.pom.Dependency dependency : current.getPomInformation().getResolvedDependencies()) {
-            if(exclusions == null || !checkExclusions(dependency.getIdent().getGroupID() + ":" + dependency.getIdent().getArtifactID(), exclusions)) {
-                if ((dependency.getScope().equals("compile") || dependency.getScope().equals("runtime")) && !dependency.isOptional() && dependency.isResolved() && !alrEncountered.containsKey(dependency.getIdent())) {
+            if(exclusions == null || !exclusions.contains(dependency.getIdent().getGA())) {
+
+                boolean dependencyRelevant = (dependency.getScope().equals("compile") || dependency.getScope().equals("runtime")) &&
+                        !dependency.isOptional() && dependency.isResolved();
+
+                if (dependencyRelevant && !alrEncountered.containsKey(dependency.getIdent())) {
                     alrEncountered.put(dependency.getIdent(), null);
                     Artifact transitive = resolveTransitives(current, dependency, alrEncountered, dependency.getExclusions());
                     if (transitive != null) {
@@ -821,7 +835,7 @@ public class PomResolver {
                         }
                         transitives.add(transitive);
                     }
-                } else if((dependency.getScope().equals("compile") || dependency.getScope().equals("runtime")) && !dependency.isOptional() && alrEncountered.get(dependency.getIdent()) != null) {
+                } else if(dependencyRelevant && alrEncountered.get(dependency.getIdent()) != null) {
                     transitives.add(alrEncountered.get(dependency.getIdent()));
                 }
             }
@@ -830,7 +844,7 @@ public class PomResolver {
         current.getPomInformation().setAllTransitiveDependencies(transitives);
     }
 
-    private Artifact resolveTransitives(Artifact current, org.tudo.sse.model.pom.Dependency toResolve, Map<ArtifactIdent, Artifact> alrEncountered, List<String> exclusions) throws IOException {
+    private Artifact resolveTransitives(Artifact current, org.tudo.sse.model.pom.Dependency toResolve, Map<ArtifactIdent, Artifact> alrEncountered, Set<String> exclusions) throws IOException {
         try {
             return recursiveResolver(toResolve.getIdent(), alrEncountered, exclusions);
         } catch(FileNotFoundException | PomResolutionException e) {
@@ -842,23 +856,14 @@ public class PomResolver {
         }
     }
 
-    private Artifact recursiveResolver(ArtifactIdent identifier, Map<ArtifactIdent, Artifact> alrEncountered, List<String> exclusions) throws FileNotFoundException, IOException, PomResolutionException {
+    private Artifact recursiveResolver(ArtifactIdent identifier, Map<ArtifactIdent, Artifact> alrEncountered, Set<String> exclusions) throws FileNotFoundException, IOException, PomResolutionException {
         Artifact current = processArtifact(identifier);
         current.getPomInformation().setResolvedDependencies(resolveDependencies(current.getPomInformation()));
         resolveAllTransitives(current, alrEncountered, exclusions);
         return current;
     }
 
-    private boolean checkExclusions(String toCheck, List<String> exclusions) {
-        for(String exclusion : exclusions) {
-            if(exclusion.equals(toCheck)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private Artifact resolveFromSecondaryRepo(List<String> repos, org.tudo.sse.model.pom.Dependency toResolve, Map<ArtifactIdent, Artifact> alrEncountered, List<String> exclusions) {
+    private Artifact resolveFromSecondaryRepo(List<String> repos, org.tudo.sse.model.pom.Dependency toResolve, Map<ArtifactIdent, Artifact> alrEncountered, Set<String> exclusions) {
         int i = 0;
         Artifact toReturn = null;
         while(i < repos.size() && toReturn == null) {
@@ -879,35 +884,56 @@ public class PomResolver {
      * @param toResolve the artifact for which to resolve the effective transitive dependencies
      */
     public void resolveEffectiveTransitives(Artifact toResolve) {
+        // Can only resolve dependencies if POM info is present.
+        // IMPROVE: Do we want to load POM info on demand?
+        if(!toResolve.hasPomInformation()){
+            throw new IllegalStateException("Cannot resolve dependencies for " + toResolve.ident.getCoordinates() + " : No POM information loaded");
+        }
+
         List<Artifact> allTransitive = toResolve.getPomInformation().getAllTransitiveDependencies();
+
+        // If "normal" transitive dependencies have not been computed yet, we try to do that on demand
+        if(allTransitive == null){
+            try {
+                this.resolveAllTransitives(toResolve, new HashMap<>(), null);
+                allTransitive = toResolve.getPomInformation().getAllTransitiveDependencies();
+            } catch (IOException iox){
+                throw new IllegalStateException("Failed to compute transitive dependencies on demand", iox);
+            }
+        }
+
+        // If "normal" transitive dependencies are still null, we cannot do anything and abort
+        if(allTransitive == null){
+            throw new RuntimeException("Unable to compute transitive dependencies for " + toResolve.ident.getCoordinates());
+        }
+
+
         Map<String, ArtifactIdent> foundGA = new HashMap<>();
         Map<String, List<ArtifactIdent>> conflicts = new HashMap<>();
-        Queue<List<Artifact>> toProcess = new LinkedList<>();
         List<Artifact> toReturn = new ArrayList<>();
 
-        toProcess.add(allTransitive);
+        Queue<Artifact> toProcess = new LinkedList<>(allTransitive);
 
         while(!toProcess.isEmpty()) {
-            List<Artifact> currentList = toProcess.peek();
-            toProcess.remove();
-            for(Artifact artifact : currentList) {
-                String key = artifact.getIdent().getGroupID() + ":" + artifact.getIdent().getArtifactID();
-                if(!foundGA.containsKey(key)) {
-                    foundGA.put(key, artifact.getIdent());
-                    if(!artifact.getPomInformation().getAllTransitiveDependencies().isEmpty()) {
-                        toProcess.add(artifact.getPomInformation().getAllTransitiveDependencies());
-                    }
+            Artifact artifact = toProcess.poll();
+
+            String key = artifact.getIdent().getGroupID() + ":" + artifact.getIdent().getArtifactID();
+            if(!foundGA.containsKey(key)) {
+                foundGA.put(key, artifact.getIdent());
+                if(!artifact.getPomInformation().getAllTransitiveDependencies().isEmpty()) {
+                    toProcess.addAll(artifact.getPomInformation().getAllTransitiveDependencies());
+                }
+            } else {
+                if(conflicts.containsKey(key)) {
+                    conflicts.get(key).add(artifact.getIdent());
                 } else {
-                    if(conflicts.containsKey(key)) {
-                        conflicts.get(key).add(artifact.getIdent());
-                    } else {
-                        List<ArtifactIdent> temp = new ArrayList<>();
-                        temp.add(foundGA.get(key));
-                        temp.add(artifact.getIdent());
-                        conflicts.put(key, temp);
-                    }
+                    List<ArtifactIdent> temp = new ArrayList<>();
+                    temp.add(foundGA.get(key));
+                    temp.add(artifact.getIdent());
+                    conflicts.put(key, temp);
                 }
             }
+
         }
 
         for(Map.Entry<String,ArtifactIdent> entry : foundGA.entrySet()) {
