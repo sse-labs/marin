@@ -1,6 +1,8 @@
 package org.tudo.sse.model.pom;
 
 import java.util.List;
+import java.util.Set;
+
 import org.tudo.sse.model.ArtifactIdent;
 
 /**
@@ -9,7 +11,7 @@ import org.tudo.sse.model.ArtifactIdent;
 public class Dependency {
     private ArtifactIdent ident;
     private String scope;
-    private final List<String> exclusions;
+    private final Set<String> exclusions;
     private final boolean optional;
     private boolean isResolved;
     private boolean isVersionRange;
@@ -23,7 +25,7 @@ public class Dependency {
      * @param optional if the dependency can be left out of resolution
      * @param exclusions list of dependencies to exclude from transitive resolution
      */
-    public Dependency(ArtifactIdent ident, String scope, boolean isResolved, boolean isVersionRange, boolean optional, List<String> exclusions) {
+    public Dependency(ArtifactIdent ident, String scope, boolean isResolved, boolean isVersionRange, boolean optional, Set<String> exclusions) {
         this.ident = ident;
         this.scope = scope;
         this.isResolved = isResolved;
@@ -115,9 +117,9 @@ public class Dependency {
 
     /**
      * Gets the list of dependencies to exclude from resolution
-     * @return a list of identifiers to exclude from transitive dependency resolution
+     * @return a set of G:A identifiers to exclude from transitive dependency resolution
      */
-    public List<String> getExclusions() {
+    public Set<String> getExclusions() {
         return exclusions;
     }
 }

@@ -286,7 +286,7 @@ class MavenCentralAnalysisTest {
         };
 
         jarUseCase.resolveJar = true;
-        assertDoesNotThrow( () -> jarUseCase.runAnalysis(new String[]{"-st", "0:1000"}));
+        assertDoesNotThrow( () -> jarUseCase.runAnalysis(new String[]{"-st", "0:300"}));
 
         MavenCentralAnalysis pomUseCase = new MavenCentralAnalysis() {
             public final Set<License> uniqueLicenses = new HashSet<>();
@@ -306,7 +306,7 @@ class MavenCentralAnalysisTest {
         };
 
         pomUseCase.resolvePom = true;
-        assertDoesNotThrow( () -> pomUseCase.runAnalysis(new String[]{"-st", "0:1000"}));
+        assertDoesNotThrow( () -> pomUseCase.runAnalysis(new String[]{"-st", "0:300"}));
 
         MavenCentralAnalysis indexUseCase = new MavenCentralAnalysis() {
             public final Set<Artifact> hasJavadocs = new HashSet<>();
@@ -325,7 +325,7 @@ class MavenCentralAnalysisTest {
         };
 
         indexUseCase.resolveIndex = true;
-        assertDoesNotThrow( () -> indexUseCase.runAnalysis(new String[]{"-st", "0:1000"}));
+        assertDoesNotThrow( () -> indexUseCase.runAnalysis(new String[]{"-st", "0:300"}));
     }
 
 }

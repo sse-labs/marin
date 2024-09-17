@@ -55,9 +55,6 @@ public class Artifact {
         pomInformation = null;
     }
 
-    public IndexInformation getIndexInformation() {
-        return indexInformation;
-    }
 
     public ArtifactIdent getIdent() {
         return ident;
@@ -65,6 +62,14 @@ public class Artifact {
 
     public ArtifactIdent getRelocation() {
         return relocation;
+    }
+
+    public IndexInformation getIndexInformation() {
+        return indexInformation;
+    }
+
+    public boolean hasIndexInformation() {
+        return indexInformation != null;
     }
 
     public void setIndexInformation(IndexInformation indexInformation) {
@@ -75,12 +80,20 @@ public class Artifact {
         return pomInformation;
     }
 
+    public boolean hasPomInformation() {
+        return pomInformation != null;
+    }
+
     public void setPomInformation(PomInformation pomInformation) {
         this.pomInformation = pomInformation;
     }
 
     public JarInformation getJarInformation() {
         return jarInformation;
+    }
+
+    public boolean hasJarInformation(){
+        return jarInformation != null;
     }
 
     public void setJarInformation(JarInformation jarInformation) {
