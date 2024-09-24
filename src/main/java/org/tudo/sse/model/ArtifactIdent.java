@@ -12,6 +12,8 @@ import org.tudo.sse.utils.MavenCentralRepository;
  * As well as methods for retrieving different file types from the maven central repository.
  */
 public class ArtifactIdent {
+
+    public static final String CENTRAL_REPOSITORY_URL = "https://repo1.maven.org/maven2/";
     /**
      * The group section of the identifier.
      */
@@ -28,6 +30,11 @@ public class ArtifactIdent {
     private String GA;
 
     /**
+     * The GAV triple of this artifact
+     */
+    private String GAV;
+
+    /**
      * The version of the artifact.
      */
     private String version;
@@ -41,9 +48,8 @@ public class ArtifactIdent {
     public ArtifactIdent(String groupID, String artifactID, String version) {
         this.artifactID = artifactID;
         this.groupID = groupID;
-        this.GA = groupID + ":" + artifactID;
         this.version = version;
-        this.repository = "https://repo1.maven.org/maven2/";
+        this.repository = CENTRAL_REPOSITORY_URL;
     }
 
     public ArtifactIdent(ArtifactIdent toCopy) {
@@ -51,7 +57,6 @@ public class ArtifactIdent {
         this.artifactID = toCopy.artifactID;
         this.version = toCopy.version;
         this.repository = toCopy.repository;
-        this.GA = toCopy.getGA();
     }
 
     /**
@@ -69,6 +74,7 @@ public class ArtifactIdent {
     public void setGroupID(String groupID) {
         this.groupID = groupID;
         this.GA = this.groupID + ":" + this.artifactID;
+        this.GAV = groupID + ":" + artifactID + ":" + version;
     }
 
     /**
@@ -86,6 +92,7 @@ public class ArtifactIdent {
     public void setArtifactID(String artifactID) {
         this.artifactID = artifactID;
         this.GA = this.groupID + ":" + this.artifactID;
+        this.GAV = groupID + ":" + artifactID + ":" + version;
     }
 
     /**
@@ -93,6 +100,10 @@ public class ArtifactIdent {
      * @return GA tuple separated by colon
      */
     public String getGA(){
+        if(this.GA == null){
+            this.GA = this.groupID + ":" + this.artifactID;
+        }
+
         return this.GA;
     }
     /**
@@ -109,6 +120,7 @@ public class ArtifactIdent {
      */
     public void setVersion(String version) {
         this.version = version;
+        this.GAV = groupID + ":" + artifactID + ":" + version;
     }
 
     /**
@@ -132,7 +144,11 @@ public class ArtifactIdent {
      * @return full g:a:v value
      */
     public String getCoordinates() {
-        return groupID + ":" + artifactID + ":" + version;
+
+        if(this.GAV == null){
+            this.GAV = groupID + ":" + artifactID + ":" + version;
+        }
+        return this.GAV;
     }
 
     /**

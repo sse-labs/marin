@@ -93,28 +93,37 @@ public class IndexIterator implements Iterator<IndexInformation> {
      * @see Package
      */
     public IndexInformation processIndex(Map<String, String> item) {
+        String uVal = item.get("u");
         //process the G:A:V tuple
-        if(item.get("u") != null) {
-            ArtifactIdent temp = processArtifactIdent(item.get("u"));
+        if(uVal != null) {
+            ArtifactIdent temp = processArtifactIdent(uVal);
 
-            //Create an artifact using the values found in the 'i' and '1' tags
-            if(item.get("i") != null) {
-                String[] parts = item.get("i").split(IndexWalker.splitPattern);
-
-                Package tmpPackage = new Package(parts[0], Long.parseLong(parts[1]), Long.parseLong(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(parts[4]), Integer.parseInt(parts[5]), item.get("1"));
-
-                IndexInformation t = new IndexInformation(temp, tmpPackage);
-                t.setName(item.get("n"));
-                t.setIndex(index);
-                index++;
-
-                if(index != 0 && index % 500000 == 0){
-                    log.info("{} indexes have been processed.", index);
-                }
-
-                return t;
-            }
+            return processIndex(item, temp);
         }
+        return null;
+    }
+
+    private IndexInformation processIndex(Map<String, String> item, ArtifactIdent ident){
+        String iVal = item.get("i");
+
+        //Create an artifact using the values found in the 'i' and '1' tags
+        if(iVal != null) {
+            String[] parts = iVal.split(IndexWalker.splitPattern);
+
+            Package tmpPackage = new Package(parts[0], Long.parseLong(parts[1]), Long.parseLong(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(parts[4]), Integer.parseInt(parts[5]), item.get("1"));
+
+            IndexInformation t = new IndexInformation(ident, tmpPackage);
+            t.setName(item.get("n"));
+            t.setIndex(index);
+            index++;
+
+            if(index != 0 && index % 500000 == 0){
+                log.info("{} indexes have been processed.", index);
+            }
+
+            return t;
+        }
+
         return null;
     }
 
@@ -139,7 +148,8 @@ public class IndexIterator implements Iterator<IndexInformation> {
 
             //pass nextArtifact to currentArtifact
             if(nextArtifact == null) {
-                while (cr.hasNext() && currentArtifact == null) {
+                while (currentArtifact == null && cr.hasNext()) {
+                    // If this fails with an exception, then there is really nothing we can do - let the exception bubble up
                     currentArtifact = processIndex(cr.next());
                 }
             } else {
@@ -149,21 +159,33 @@ public class IndexIterator implements Iterator<IndexInformation> {
 
             //keep iterating the indexReader until the gav is different from the one in currentArtifact
             while (cr.hasNext()) {
-                Map<String, String> curInfo = cr.next();
+                Map<String, String> currentEntry;
 
-                if (curInfo.get("u") == null) {
+                try {
+                    currentEntry = cr.next();
+                } catch(RuntimeException rx){
+                    log.error("Failed to get entry from index: " + rx.getMessage());
+                    currentEntry = null;
+                }
+
+                if (currentEntry == null) break;
+
+                String currentUVal = currentEntry.get("u");
+
+                if(currentUVal == null) break;
+
+                final String currentArtifactGAV = currentArtifact.getIdent().getCoordinates();
+                final ArtifactIdent currentEntryIdent = processArtifactIdent(currentUVal);
+
+                if(!currentArtifactGAV.equals(currentEntryIdent.getCoordinates())){
+                    nextArtifact = processIndex(currentEntry, currentEntryIdent);
                     break;
                 }
 
-                if (!(currentArtifact.getIdent().getCoordinates().equals(processArtifactIdent(curInfo.get("u")).getCoordinates()))) {
+                String currentIVal = currentEntry.get("i");
 
-                    //store into additional variable
-                    nextArtifact = processIndex(curInfo);
-                    break;
-                }
-
-                if(curInfo.get("i") != null) {
-                    currentArtifact.addAPackage(processPackage(curInfo.get("i"), curInfo.get("1")));
+                if(currentIVal != null) {
+                    currentArtifact.addAPackage(processPackage(currentIVal, currentEntry.get("1")));
                     index++;
                 }
             }
