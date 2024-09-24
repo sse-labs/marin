@@ -49,6 +49,20 @@ public class GAUtils {
         }
     }
 
+    public static List<String> getReleasesFromMetadata(ArtifactIdent identifier){
+        try{
+            Metadata meta = getVersions(identifier.getGroupID(), identifier.getArtifactID());
+
+            if(meta.getVersioning() == null){
+                throw new RuntimeException("Invalid versioning in metadata: null");
+            }
+
+            return meta.getVersioning().getVersions();
+        } catch(FileNotFoundException | IOException | XmlPullParserException x){
+            throw new RuntimeException(x);
+        }
+    }
+
     public static Artifact getLastModifiedVersion(String groupId, String artifactId) throws PomResolutionException {
         try {
             Metadata meta = getVersions(groupId, artifactId);

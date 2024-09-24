@@ -8,6 +8,7 @@ import org.tudo.sse.model.ArtifactIdent;
 import org.tudo.sse.model.index.Package;
 import org.tudo.sse.model.index.IndexInformation;
 
+import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Iterator;
@@ -22,8 +23,10 @@ import java.util.Map;
 
 public class IndexIterator implements Iterator<IndexInformation> {
     private long index;
-    private final IndexReader ir;
-    private final Iterator<Map<String, String>> cr;
+
+    private final URI baseUri;
+    private IndexReader ir;
+    private Iterator<Map<String, String>> cr;
     private IndexInformation currentArtifact;
     private IndexInformation nextArtifact;
     private boolean prevHasNext;
@@ -32,6 +35,7 @@ public class IndexIterator implements Iterator<IndexInformation> {
 
 
     public IndexIterator(URI base) throws IOException {
+        baseUri = base;
         ir = new IndexReader(null, new HttpResourceHandler(base.resolve(".index/")));
         cr = ir.iterator().next().iterator();
         index = 0;
@@ -40,20 +44,34 @@ public class IndexIterator implements Iterator<IndexInformation> {
     }
 
     public IndexIterator(URI base, long startingIndex) throws IOException {
-        ir = new IndexReader(null, new HttpResourceHandler(base.resolve(".index/")));
-        cr = ir.iterator().next().iterator();
-        index = 0;
+        this(base);
 
         while(cr.hasNext() && index != startingIndex) {
          cr.next();
          index++;
         }
-        currentArtifact = null;
-        nextArtifact = null;
     }
 
     public void closeReader() throws IOException {
         ir.close();
+    }
+
+    private void recoverConnectionReset() throws IOException{
+        long indexPos = getIndex();
+        log.info("Recovering from connection reset at index {}", indexPos);
+
+
+        ir = new IndexReader(null, new HttpResourceHandler(baseUri.resolve(".index/")));
+        cr = ir.iterator().next().iterator();
+        index = 0;
+
+        while(cr.hasNext() && index < indexPos){
+            cr.next();
+            index++;
+            if(index % 1000000 == 0) log.debug("Skipping indices for recovery, {} processed so far ...", index);
+        }
+
+        log.info("Recovery successful, reset chunk reader to index {}.", indexPos);
     }
 
     /**
@@ -93,28 +111,37 @@ public class IndexIterator implements Iterator<IndexInformation> {
      * @see Package
      */
     public IndexInformation processIndex(Map<String, String> item) {
+        String uVal = item.get("u");
         //process the G:A:V tuple
-        if(item.get("u") != null) {
-            ArtifactIdent temp = processArtifactIdent(item.get("u"));
+        if(uVal != null) {
+            ArtifactIdent temp = processArtifactIdent(uVal);
 
-            //Create an artifact using the values found in the 'i' and '1' tags
-            if(item.get("i") != null) {
-                String[] parts = item.get("i").split(IndexWalker.splitPattern);
-
-                Package tmpPackage = new Package(parts[0], Long.parseLong(parts[1]), Long.parseLong(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(parts[4]), Integer.parseInt(parts[5]), item.get("1"));
-
-                IndexInformation t = new IndexInformation(temp, tmpPackage);
-                t.setName(item.get("n"));
-                t.setIndex(index);
-                index++;
-
-                if(index != 0 && index % 500000 == 0){
-                    log.info("{} indexes have been processed.", index);
-                }
-
-                return t;
-            }
+            return processIndex(item, temp);
         }
+        return null;
+    }
+
+    private IndexInformation processIndex(Map<String, String> item, ArtifactIdent ident){
+        String iVal = item.get("i");
+
+        //Create an artifact using the values found in the 'i' and '1' tags
+        if(iVal != null) {
+            String[] parts = iVal.split(IndexWalker.splitPattern);
+
+            Package tmpPackage = new Package(parts[0], Long.parseLong(parts[1]), Long.parseLong(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(parts[4]), Integer.parseInt(parts[5]), item.get("1"));
+
+            IndexInformation t = new IndexInformation(ident, tmpPackage);
+            t.setName(item.get("n"));
+            t.setIndex(index);
+            index++;
+
+            if(index != 0 && index % 500000 == 0){
+                log.info("{} indexes have been processed.", index);
+            }
+
+            return t;
+        }
+
         return null;
     }
 
@@ -139,8 +166,34 @@ public class IndexIterator implements Iterator<IndexInformation> {
 
             //pass nextArtifact to currentArtifact
             if(nextArtifact == null) {
-                while (cr.hasNext() && currentArtifact == null) {
-                    currentArtifact = processIndex(cr.next());
+                while (currentArtifact == null && cr.hasNext()) {
+                    try {
+                        // This may fail with an SSL connection reset exception...
+                        currentArtifact = processIndex(cr.next());
+                    } catch(RuntimeException rx){
+
+                        // Try to find out if this read error was caused by an SSL connection reset.
+                        boolean causedBySsl = false;
+                        Throwable current = rx;
+                        while(!causedBySsl && current.getCause() != null){
+                            current = current.getCause();
+                            causedBySsl = current instanceof SSLException;
+                        }
+
+                        if(rx.getMessage().contains("read error") && causedBySsl){
+                            // If so, try to recover by re-initializing the reader (and skipping to the right position)
+                            try {
+                                recoverConnectionReset();
+                            } catch(Exception x){
+                                log.error("Recovery unsuccessful: " + x.getMessage());
+                                throw new RuntimeException(x);
+                            }
+                        } else {
+                            // Don't try to handle other exceptions with recovery
+                            throw rx;
+                        }
+                    }
+
                 }
             } else {
                 currentArtifact = nextArtifact;
@@ -149,21 +202,33 @@ public class IndexIterator implements Iterator<IndexInformation> {
 
             //keep iterating the indexReader until the gav is different from the one in currentArtifact
             while (cr.hasNext()) {
-                Map<String, String> curInfo = cr.next();
+                Map<String, String> currentEntry;
 
-                if (curInfo.get("u") == null) {
+                try {
+                    currentEntry = cr.next();
+                } catch(RuntimeException rx){
+                    log.error("Failed to get entry from index: " + rx.getMessage());
+                    currentEntry = null;
+                }
+
+                if (currentEntry == null) break;
+
+                String currentUVal = currentEntry.get("u");
+
+                if(currentUVal == null) break;
+
+                final String currentArtifactGAV = currentArtifact.getIdent().getCoordinates();
+                final ArtifactIdent currentEntryIdent = processArtifactIdent(currentUVal);
+
+                if(!currentArtifactGAV.equals(currentEntryIdent.getCoordinates())){
+                    nextArtifact = processIndex(currentEntry, currentEntryIdent);
                     break;
                 }
 
-                if (!(currentArtifact.getIdent().getCoordinates().equals(processArtifactIdent(curInfo.get("u")).getCoordinates()))) {
+                String currentIVal = currentEntry.get("i");
 
-                    //store into additional variable
-                    nextArtifact = processIndex(curInfo);
-                    break;
-                }
-
-                if(curInfo.get("i") != null) {
-                    currentArtifact.addAPackage(processPackage(curInfo.get("i"), curInfo.get("1")));
+                if(currentIVal != null) {
+                    currentArtifact.addAPackage(processPackage(currentIVal, currentEntry.get("1")));
                     index++;
                 }
             }
