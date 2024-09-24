@@ -8,6 +8,7 @@ import org.tudo.sse.model.ArtifactIdent;
 import org.tudo.sse.model.index.Package;
 import org.tudo.sse.model.index.IndexInformation;
 
+import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Iterator;
@@ -22,8 +23,10 @@ import java.util.Map;
 
 public class IndexIterator implements Iterator<IndexInformation> {
     private long index;
-    private final IndexReader ir;
-    private final Iterator<Map<String, String>> cr;
+
+    private final URI baseUri;
+    private IndexReader ir;
+    private Iterator<Map<String, String>> cr;
     private IndexInformation currentArtifact;
     private IndexInformation nextArtifact;
     private boolean prevHasNext;
@@ -32,6 +35,7 @@ public class IndexIterator implements Iterator<IndexInformation> {
 
 
     public IndexIterator(URI base) throws IOException {
+        baseUri = base;
         ir = new IndexReader(null, new HttpResourceHandler(base.resolve(".index/")));
         cr = ir.iterator().next().iterator();
         index = 0;
@@ -40,20 +44,34 @@ public class IndexIterator implements Iterator<IndexInformation> {
     }
 
     public IndexIterator(URI base, long startingIndex) throws IOException {
-        ir = new IndexReader(null, new HttpResourceHandler(base.resolve(".index/")));
-        cr = ir.iterator().next().iterator();
-        index = 0;
+        this(base);
 
         while(cr.hasNext() && index != startingIndex) {
          cr.next();
          index++;
         }
-        currentArtifact = null;
-        nextArtifact = null;
     }
 
     public void closeReader() throws IOException {
         ir.close();
+    }
+
+    private void recoverConnectionReset() throws IOException{
+        long indexPos = getIndex();
+        log.info("Recovering from connection reset at index {}", indexPos);
+
+
+        ir = new IndexReader(null, new HttpResourceHandler(baseUri.resolve(".index/")));
+        cr = ir.iterator().next().iterator();
+        index = 0;
+
+        while(cr.hasNext() && index < indexPos){
+            cr.next();
+            index++;
+            if(index % 1000000 == 0) log.debug("Skipping indices for recovery, {} processed so far ...", index);
+        }
+
+        log.info("Recovery successful, reset chunk reader to index {}.", indexPos);
     }
 
     /**
@@ -149,8 +167,33 @@ public class IndexIterator implements Iterator<IndexInformation> {
             //pass nextArtifact to currentArtifact
             if(nextArtifact == null) {
                 while (currentArtifact == null && cr.hasNext()) {
-                    // If this fails with an exception, then there is really nothing we can do - let the exception bubble up
-                    currentArtifact = processIndex(cr.next());
+                    try {
+                        // This may fail with an SSL connection reset exception...
+                        currentArtifact = processIndex(cr.next());
+                    } catch(RuntimeException rx){
+
+                        // Try to find out if this read error was caused by an SSL connection reset.
+                        boolean causedBySsl = false;
+                        Throwable current = rx;
+                        while(!causedBySsl && current.getCause() != null){
+                            current = current.getCause();
+                            causedBySsl = current instanceof SSLException;
+                        }
+
+                        if(rx.getMessage().contains("read error") && causedBySsl){
+                            // If so, try to recover by re-initializing the reader (and skipping to the right position)
+                            try {
+                                recoverConnectionReset();
+                            } catch(Exception x){
+                                log.error("Recovery unsuccessful: " + x.getMessage());
+                                throw new RuntimeException(x);
+                            }
+                        } else {
+                            // Don't try to handle other exceptions with recovery
+                            throw rx;
+                        }
+                    }
+
                 }
             } else {
                 currentArtifact = nextArtifact;
