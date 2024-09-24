@@ -39,9 +39,9 @@ public class ArtifactIdent {
      */
     private String version;
     /**
-     * The repository where this artifact can be found.
+     * The repository where this artifact can be found - if different from the central Repo
      */
-    private String repository;
+    private String customRepository;
 
     private static final Logger log = LogManager.getLogger(ArtifactIdent.class);
 
@@ -49,14 +49,13 @@ public class ArtifactIdent {
         this.artifactID = artifactID;
         this.groupID = groupID;
         this.version = version;
-        this.repository = CENTRAL_REPOSITORY_URL;
     }
 
     public ArtifactIdent(ArtifactIdent toCopy) {
         this.groupID = toCopy.groupID;
         this.artifactID = toCopy.artifactID;
         this.version = toCopy.version;
-        this.repository = toCopy.repository;
+        this.customRepository = toCopy.customRepository;
     }
 
     /**
@@ -128,7 +127,8 @@ public class ArtifactIdent {
      * @return repository
      */
     public String getRepository() {
-        return repository;
+        if(this.customRepository != null) return this.customRepository;
+        else return CENTRAL_REPOSITORY_URL;
     }
 
     /**
@@ -136,7 +136,7 @@ public class ArtifactIdent {
      * @param repository new repository value
      */
     public void setRepository(String repository) {
-        this.repository = repository;
+        this.customRepository = repository;
     }
 
     /**
@@ -157,7 +157,7 @@ public class ArtifactIdent {
      */
     public URI getMavenCentralPomUri() {
         try {
-            if(repository.equals("https://repo1.maven.org/maven2/")) {
+            if(customRepository == null) {
                 return MavenCentralRepository.buildPomFileURI(this);
             } else {
                 return MavenCentralRepository.buildSecondaryPomFileURI(this, getRepository());
