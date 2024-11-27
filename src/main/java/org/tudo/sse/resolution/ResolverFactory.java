@@ -30,9 +30,9 @@ public class ResolverFactory {
     public void runPom(ArtifactIdent identifier) {
         try {
             pomResolver.resolveArtifact(identifier);
-        } catch (FileNotFoundException | IOException | PomResolutionException e) {
+        } catch (IOException | PomResolutionException e) {
             log.error(e);
-        }
+        } catch (FileNotFoundException ignored) {}
     }
 
     public void runJar(ArtifactIdent identifier) {
@@ -46,9 +46,10 @@ public class ResolverFactory {
     public void runBoth(ArtifactIdent identifier) {
         try {
             pomResolver.resolveArtifact(identifier);
-        } catch (FileNotFoundException | IOException | PomResolutionException e) {
+        } catch (IOException | PomResolutionException e) {
             log.error(e);
-        }
+        } catch(FileNotFoundException ignored){}
+
         try {
             jarResolver.setOutput(false);
             jarResolver.parseJar(identifier);

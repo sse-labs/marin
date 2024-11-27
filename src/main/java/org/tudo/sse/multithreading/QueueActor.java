@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This class is a queue in handling resolution jobs to send to different threads.
@@ -16,7 +17,7 @@ import java.util.Queue;
 public class QueueActor extends AbstractActor{
 
     private final int numResolverActors;
-    private int curNumResolvers;
+    private final AtomicInteger curNumResolvers;
     private final Queue<IdentPlusMCA> jobQueue;
     private boolean indexFinished = false;
     private final ActorSystem system;
@@ -26,7 +27,7 @@ public class QueueActor extends AbstractActor{
     public QueueActor(int numResolverActors, ActorSystem system) {
         this.numResolverActors = numResolverActors;
         this.system = system;
-        this.curNumResolvers = 0;
+        this.curNumResolvers = new AtomicInteger(0);
         this.jobQueue = new LinkedList<>();
     }
 
@@ -38,32 +39,42 @@ public class QueueActor extends AbstractActor{
     public Receive createReceive() {
         return ReceiveBuilder.create()
                 .match(IdentPlusMCA.class, message -> {
-                    if(curNumResolvers != numResolverActors) {
-                        ActorRef processor = getContext().actorOf(ResolverActor.props());
-                        processor.tell(message, getSelf());
-                        log.info("New resolver created");
-                        curNumResolvers++;
-                    } else {
-                        log.info("Added to queue");
-                        jobQueue.add(message);
-                    }
-                })
-                .match(String.class, message -> {
-                    if(!jobQueue.isEmpty()) {
-                        getSender().tell(jobQueue.peek(), getSelf());
-                        jobQueue.remove();
-                    } else {
-                        if(indexFinished && curNumResolvers == 1) {
-                            system.terminate();
+                    synchronized (curNumResolvers){
+                        if(curNumResolvers.get() < numResolverActors) {
+                            ActorRef processor = getContext().actorOf(ResolverActor.props());
+                            processor.tell(message, getSelf());
+                            log.info("New resolver created");
+                            curNumResolvers.incrementAndGet();
                         } else {
-                            getSender().tell(PoisonPill.getInstance(), getSelf());
-                            curNumResolvers--;
+                            jobQueue.add(message);
                         }
                     }
+
+                })
+                .match(String.class, message -> {
+                    synchronized (jobQueue){
+                        if(!jobQueue.isEmpty()) {
+                            getSender().tell(jobQueue.peek(), getSelf());
+                            jobQueue.remove();
+                            if(jobQueue.size() % 10 == 0) log.trace("Distributed a job, queue size " + jobQueue.size());
+                        } else {
+                            synchronized(curNumResolvers) {
+                                if(indexFinished && curNumResolvers.get() == 1) {
+                                    log.trace("Shutting down system");
+                                    system.terminate();
+                                } else {
+                                    log.trace("Killing a worker thread");
+                                    getSender().tell(PoisonPill.getInstance(), getSelf());
+                                    curNumResolvers.decrementAndGet();
+                                }
+                            }
+                        }
+                    }
+
                 })
                 .match(IndexProcessingMessage.class, indexProcessingMessage -> {
                     indexFinished = true;
-                    if(curNumResolvers == 0) {
+                    if(curNumResolvers.get() == 0) {
                         system.terminate();
                     }
                 })

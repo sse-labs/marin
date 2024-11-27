@@ -24,7 +24,6 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -101,7 +100,7 @@ public class JarResolver {
         try {
             URL jarURL = identifier.getMavenCentralJarUri().toURL();
             InputStream jarInput = MavenRepo.openJarFileInputStream(identifier);
-            if(output) {
+            if(output && pathToDirectory != null) {
                 var baos = new ByteArrayOutputStream();
                 var buffer = new byte[32 * 1024];
 
@@ -128,9 +127,9 @@ public class JarResolver {
             List<Tuple2<ClassFile, URL>> classList = readClassesFromJarStream(jarInput, jarURL);
             return ArtifactFactory.createArtifact(parsingClassFiles(classList, identifier));
 
-        } catch (FileNotFoundException | IOException e) {
+        } catch (IOException e) {
             log.error(e);
-        }
+        } catch (FileNotFoundException ignored) {}
         return null;
     }
 
@@ -211,10 +210,8 @@ public class JarResolver {
 
     public List<Tuple2<ClassFile, URL>> readClassesFromJarStream(InputStream jarStream, URL source) throws JarResolutionException {
         var entries = new ArrayList<Tuple2<ClassFile, URL>>();
-        JarInputStream jarInputStream;
 
-        try {
-            jarInputStream = new JarInputStream(jarStream);
+        try (JarInputStream jarInputStream = new JarInputStream(jarStream)){
             var currentEntry = jarInputStream.getNextJarEntry();
             while(currentEntry != null){
                 final var entryName = currentEntry.getName().toLowerCase();
@@ -222,7 +219,7 @@ public class JarResolver {
                     cfReader.ClassFile(getEntryByteStream(jarInputStream))
                             .map(cf -> {
                                 try {
-                                    return new Tuple2(cf, new URL("jar:" +source + "!/" + entryName));
+                                    return new Tuple2<>((ClassFile) cf, new URL("jar:" + source + "!/" + entryName));
                                 } catch (MalformedURLException e) {
                                     throw new RuntimeException(e);
                                 }

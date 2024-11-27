@@ -30,7 +30,9 @@ public class MavenCentralRepository {
 
     public long getLastModified(ArtifactIdent ident) throws FileNotFoundException, IOException {
         HttpURLConnection connection = ResourceConnections.openConnection(ident.getMavenCentralPomUri());
-        return connection.getLastModified();
+        long toReturn = connection.getLastModified();
+        connection.disconnect();
+        return toReturn;
     }
 
     public InputStream openPomFileInputStream(ArtifactIdent ident) throws FileNotFoundException, IOException {

@@ -16,6 +16,8 @@ import java.util.concurrent.TimeUnit;
 public class HttpResourceHandler implements ResourceHandler {
     private final URI root;
 
+    private final int BUFFER_SIZE = 10 * 1024 * 1024; // Buffer 10MB
+
     public HttpResourceHandler(URI root) {
         this.root = root;
     }
@@ -36,11 +38,11 @@ public class HttpResourceHandler implements ResourceHandler {
             URL target = root.resolve(name).toURL();
 
             HttpURLConnection conn = (HttpURLConnection) target.openConnection();
-            conn.setReadTimeout((int) TimeUnit.MINUTES.toMillis(20));
             conn.setRequestMethod("GET");
-            conn.setRequestProperty("User-Agent", "Callgraph-Creator-Producer");
+            conn.setRequestProperty("Connection", "keep-alive");
+            conn.connect();
 
-            return new BufferedInputStream(conn.getInputStream());
+            return new BufferedInputStream(conn.getInputStream(), BUFFER_SIZE);
         }
 
     }
