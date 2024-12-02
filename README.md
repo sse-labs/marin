@@ -1,4 +1,4 @@
-# MARIN (MAven Research INterface)
+ # MARIN (MAven Research INterface)
 An interface focused on creating an accessible and scalable way to do research on artifacts on the Maven Central repository. MARIN contains an overarching implementation of the different modules in the interface, allowing for quick and repeated analysis runs to be performed. 
 
 ## Required Java Version
@@ -48,7 +48,7 @@ For these examples, these will perform the analysis on the first 1000 artifacts.
 
 ### Counting all classFiles from jar artifacts:
 ``` java
-public class ExampleImplementation() extends MavenCentralAnalysis {
+public class ExampleImplementation extends MavenCentralAnalysis {
     private long numberOfClassfiles;
     
     public ExampleImplementation() {
@@ -73,7 +73,7 @@ public class ExampleImplementation() extends MavenCentralAnalysis {
 
 ### Find all Unique Licenses from pom artifacts
 ``` java
-public class ExampleImplementation() extends MavenCentralAnalysis {
+public class ExampleImplementation extends MavenCentralAnalysis {
     private Set<License> uniqueLicenses;
 
     public ExampleImplementation() {
@@ -104,7 +104,7 @@ public class ExampleImplementation() extends MavenCentralAnalysis {
 
 ### Collect all artifacts that have javadocs
 ``` java
-public class ExampleImplementation() extends MavenCentralAnalysis {
+public class ExampleImplementation extends MavenCentralAnalysis {
     private Set<Artifact> hasJavadocs;
 
     public ExampleImplementation() {
