@@ -1,0 +1,29 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Maven Research Interface (MARIN)
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Johannes
+    family-names: Düsing
+    email: johannes.duesing@tu-dortmund.de
+    affiliation: TU Dortmund
+    orcid: 'https://orcid.org/0000-0002-9367-2206'
+  - given-names: Jared
+    family-names: Chiaramonte
+    affiliation: Arizona State University
+    email: jchiara1@asu.edu
+  - given-names: Ben
+    family-names: Hermann
+    email: ben.hermann@cs.tu-dortmund.de
+    affiliation: TU Dortmund
+    orcid: 'https://orcid.org/0000-0001-9848-2017'
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.14235313
+    description: Artifact Submission of MARIN 1.0.0
+repository-code: 'https://github.com/sse-labs/marin'
