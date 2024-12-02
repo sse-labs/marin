@@ -193,11 +193,11 @@ public class PomResolver {
         for(ArtifactIdent ident : idents) {
             try {
                 poms.add(resolveArtifact(ident));
-            } catch(PomResolutionException | FileNotFoundException e) {
+            } catch(PomResolutionException e) {
                 log.error(e);
             } catch ( IOException e) {
                 throw new RuntimeException(e);
-            }
+            } catch(FileNotFoundException ignored) {}
 
             count++;
             if(count % 10000 == 0) {
@@ -320,7 +320,8 @@ public class PomResolver {
             return rawPomFeatures;
 
         } catch (IOException | XmlPullParserException e) {
-            throw new PomResolutionException(e.getMessage(), identifier);
+            try { input.close(); } catch (Exception ignored) {}
+            throw new PomResolutionException(e.getMessage(), identifier, e);
         }
     }
 
@@ -378,16 +379,18 @@ public class PomResolver {
         PomInformation pomInformation = new PomInformation(identifier);
 
         RawPomFeatures rawPomFeatures;
-        try {
-            rawPomFeatures = processRawPomFeatures(MavenRepo.openPomFileInputStream(identifier), identifier);
+        try(InputStream is = MavenRepo.openPomFileInputStream(identifier) ) {
+            rawPomFeatures = processRawPomFeatures(is, identifier);
         } catch (SocketException e) {
-            throw new PomResolutionException(e.getMessage(), identifier);
+            throw new PomResolutionException(e.getMessage(), identifier, e);
         }
 
         ArtifactIdent relocation = null;
         while(rawPomFeatures != null && rawPomFeatures.getRelocation() != null) {
             relocation = rawPomFeatures.getRelocation();
-            rawPomFeatures = processRawPomFeatures(MavenRepo.openPomFileInputStream(relocation), relocation);
+            InputStream relocStream = MavenRepo.openPomFileInputStream(relocation);
+            rawPomFeatures = processRawPomFeatures(relocStream, relocation);
+            relocStream.close();
         }
         pomInformation.setRelocation(relocation);
         pomInformation.setRawPomFeatures(rawPomFeatures);
@@ -404,10 +407,9 @@ public class PomResolver {
             try {
                 pomInformation.setParent(processArtifact(pomInformation.getRawPomFeatures().getParent()));
             } catch(PomResolutionException e) {
-                log.error("Failed to resolve parent", e);
-            } catch (FileNotFoundException e) {
-                log.error(e);
-            } catch (IOException e) {
+                log.error("Failed to resolve parent: " + e.getMessage());
+            } catch (FileNotFoundException ignored) {}
+            catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -729,7 +731,10 @@ public class PomResolver {
               ranges.add(scheme.parseVersionRange(splitRange));
             }
 
-            Metadata meta = reader.read(new BufferedReader(new InputStreamReader(Objects.requireNonNull(MavenRepo.openXMLFileInputStream(toResolve.getIdent())))));
+            var xmlData = new BufferedReader(new InputStreamReader(Objects.requireNonNull(MavenRepo.openXMLFileInputStream(toResolve.getIdent()))));
+            Metadata meta = reader.read(xmlData);
+            xmlData.close();
+
             if(meta.getVersioning() != null) {
                 List<String> versioning = meta.getVersioning().getVersions();
 
@@ -851,7 +856,7 @@ public class PomResolver {
             if(!current.getPomInformation().getRawPomFeatures().getRepositories().isEmpty()) {
                 return resolveFromSecondaryRepo(current.getPomInformation().getRawPomFeatures().getRepositories(), toResolve, alrEncountered, exclusions);
             }
-            log.error(e);
+            if(!(e instanceof FileNotFoundException)) log.error(e);
             return null;
         }
     }
@@ -870,9 +875,9 @@ public class PomResolver {
             toResolve.getIdent().setRepository(repos.get(i));
             try {
                 toReturn = recursiveResolver(toResolve.getIdent(), alrEncountered, exclusions);
-            } catch (IOException | FileNotFoundException | PomResolutionException e) {
+            } catch (IOException | PomResolutionException e) {
                 log.error(e);
-            }
+            } catch (FileNotFoundException ignored) {}
             i++;
         }
 

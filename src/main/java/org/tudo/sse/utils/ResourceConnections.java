@@ -1,5 +1,6 @@
 package org.tudo.sse.utils;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -24,15 +25,21 @@ public class ResourceConnections {
      */
     public static HttpURLConnection openConnection(final URI toOpen) throws IOException, FileNotFoundException, NullPointerException {
         HttpURLConnection conn = (HttpURLConnection) toOpen.toURL().openConnection();
-
-        if (conn.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
-            throw new FileNotFoundException(toOpen.toURL());
-        }
+        conn.setConnectTimeout(2 * 1000);
+        conn.setReadTimeout(5 * 1000);
 
         while (conn.getResponseCode() == 308) {
-            System.out.println(conn.getHeaderField("Location"));
             conn = (HttpURLConnection) new URL(conn.getHeaderField("Location")).openConnection();
         }
+
+        if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+            conn.disconnect();
+            if(conn.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND)
+                throw new FileNotFoundException(toOpen.toURL());
+            else
+                throw new IOException("Error accessing resource: " + conn.getURL().toString() + " (Code " + conn.getResponseCode() + ")");
+        }
+
 
         conn.connect();
         return conn;
@@ -48,7 +55,12 @@ public class ResourceConnections {
      * @throws FileNotFoundException handles errors that occur when the file to process isn't found*/
     public static InputStream openInputStream(final URI toOpen) throws IOException, FileNotFoundException {
         try {
-            return openConnection(toOpen).getInputStream();
+            HttpURLConnection con = openConnection(toOpen);
+            InputStream conStream = con.getInputStream();
+            byte[] allBytes = conStream.readAllBytes();
+            conStream.close();
+            con.disconnect();
+            return new ByteArrayInputStream(allBytes);
         } catch (NullPointerException e) {
             return null;
         }

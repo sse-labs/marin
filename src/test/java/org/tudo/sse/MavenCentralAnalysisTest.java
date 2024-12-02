@@ -8,6 +8,7 @@ import org.tudo.sse.model.ArtifactIdent;
 import org.tudo.sse.model.index.Package;
 import org.tudo.sse.model.pom.License;
 import org.tudo.sse.model.pom.PomInformation;
+import org.tudo.sse.testutils.DummyEvaluationAnalysis;
 import org.tudo.sse.utils.IndexIterator;
 import scala.Tuple2;
 
@@ -21,7 +22,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MavenCentralAnalysisTest {
-    OwnImplementation tester = new OwnImplementation();
+    DummyEvaluationAnalysis tester = new DummyEvaluationAnalysis();
     final String base = "https://repo1.maven.org/maven2/";
     final Map<String, Object> json;
     final Gson gson = new Gson();

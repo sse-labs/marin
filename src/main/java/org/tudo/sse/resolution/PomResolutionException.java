@@ -10,7 +10,8 @@ public class PomResolutionException extends Exception {
     private final ArtifactIdent artifactIdentifier;
 
 
-    public PomResolutionException(String message, ArtifactIdent artifactIdentifier) {
+    public PomResolutionException(String message, ArtifactIdent artifactIdentifier, Throwable cause) {
+        super(cause);
         this.message = message;
         this.artifactIdentifier = artifactIdentifier;
     }
@@ -18,6 +19,17 @@ public class PomResolutionException extends Exception {
 
     @Override
     public String getMessage() {
-        return "Failed to resolve " + artifactIdentifier.getCoordinates() + " : " + message;
+        StackTraceElement origin = null;
+
+        for(var elem : getCause().getStackTrace()){
+            if(elem != null){
+                origin = elem;
+                break;
+            }
+        }
+
+        String location = origin == null ? "unknown" : origin.getClassName() + ":" + origin.getLineNumber();
+
+        return "Failed to resolve " + artifactIdentifier.getCoordinates() + " : " + message + "(caused by " + getCause().getClass() + " at " + location + ")";
     }
 }

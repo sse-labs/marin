@@ -6,8 +6,6 @@
         </Console>
     </Appenders>
     <Loggers>
-        <Logger name="org.anon.vulnanalysis.Miner" level="trace"/>
-        <Logger name="org.anon.vulnanalysis.lucene.BufferedGAVIterator" level="trace"/>
         <Root level="info">
             <AppenderRef ref="LogToConsole"/>
         </Root>

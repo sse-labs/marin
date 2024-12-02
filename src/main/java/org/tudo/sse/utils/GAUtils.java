@@ -5,7 +5,6 @@ import org.apache.logging.log4j.Logger;
 import org.apache.maven.artifact.repository.metadata.Metadata;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.tudo.sse.Main;
 import org.tudo.sse.model.Artifact;
 import org.tudo.sse.model.ArtifactIdent;
 import org.tudo.sse.resolution.FileNotFoundException;
@@ -120,9 +119,11 @@ public class GAUtils {
     }
 
     private static Metadata getVersions(String groupId, String artifactId) throws FileNotFoundException, IOException, XmlPullParserException {
-        InputStream versionings = MavenRepo.openXMLFileInputStream(new ArtifactIdent(groupId, artifactId, null));
+        BufferedReader versionings = new BufferedReader(new InputStreamReader(MavenRepo.openXMLFileInputStream(new ArtifactIdent(groupId, artifactId, null))));
         MetadataXpp3Reader reader = new MetadataXpp3Reader();
-        return reader.read(new BufferedReader(new InputStreamReader(Objects.requireNonNull(versionings))));
+        Metadata toReturn = reader.read(versionings);
+        versionings.close();
+        return toReturn;
     }
 
 }

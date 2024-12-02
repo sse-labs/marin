@@ -208,10 +208,31 @@ public class IndexIterator implements Iterator<IndexInformation> {
                     currentEntry = cr.next();
                 } catch(RuntimeException rx){
                     log.error("Failed to get entry from index: " + rx.getMessage());
+                    Throwable cause = rx.getCause();
+
+                    if(cause != null){
+                        log.error("Cause of read error: " + cause.getMessage(), cause);
+                        if(cause.getMessage().toLowerCase().contains("unexpected end")){
+                            try {
+                                log.info("Recovering from connection interruption ... ");
+                                recoverConnectionReset();
+                                if(cr.hasNext()) currentArtifact = processIndex(cr.next());
+                                else throw new RuntimeException("No index entry was found after recovery");
+                                log.info("Recovery successful");
+                            } catch(Exception x){
+                                log.error("Recovery unsuccessful", x);
+                            }
+                        }
+                    }
+
+
                     currentEntry = null;
                 }
 
-                if (currentEntry == null) break;
+                if (currentEntry == null){
+                    log.error("Aborting due to error, hasNext will be: " + cr.hasNext());
+                    break;
+                }
 
                 String currentUVal = currentEntry.get("u");
 

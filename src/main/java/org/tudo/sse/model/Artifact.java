@@ -2,14 +2,12 @@ package org.tudo.sse.model;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.tudo.sse.Main;
 import org.tudo.sse.model.index.IndexInformation;
 import org.tudo.sse.model.jar.*;
 import org.tudo.sse.model.pom.PomInformation;
 import org.tudo.sse.resolution.JarResolutionException;
 import org.tudo.sse.resolution.JarResolver;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

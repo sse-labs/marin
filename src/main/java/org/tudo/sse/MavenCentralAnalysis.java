@@ -117,6 +117,35 @@ public abstract class MavenCentralAnalysis {
         return setupInfo;
     }
 
+    private void printRunInfo(){
+        log.info("Running a Maven Central Analysis Implementation:");
+        if(resolveIndex) log.info      ("\t - The analysis requires index information");
+        if(resolvePom) log.info        ("\t - The analysis requires pom information");
+        if(processTransitives) log.info("\t - The analysis requires transitive pom dependencies");
+        if(resolveJar)log.info        ("\t - The analysis requires jar information");
+
+        log.info("The current run has been configured as follows:");
+
+        if(setupInfo.isMulti()){
+            log.info("\t - Using " + setupInfo.getThreads() + " threads");
+        } else {
+            log.info("\t - Using one thread");
+        }
+
+        if(setupInfo.getToCoordinates() == null){
+            log.info("\t - Reading artifacts from Maven Central index");
+            if(setupInfo.getToIndexPos() != null) log.info("\t - Restoring last index position from " + setupInfo.getToIndexPos());
+            if(setupInfo.getName() != null)       log.info("\t - Writing last index position to " + setupInfo.getName());
+            if(setupInfo.getSkip() >= 0)          log.info("\t - Skipping " + setupInfo.getSkip() + " artifacts");
+            if(setupInfo.getTake() >= 0)          log.info("\t - Taking " + setupInfo.getTake() + " artifacts");
+            if(setupInfo.getSince() >= 0)         log.info("\t - Skipping artifacts before " + setupInfo.getSince());
+            if(setupInfo.getUntil() >= 0)         log.info("\t - Taking artifacts until " + setupInfo.getUntil());
+
+        } else {
+            log.info("\t - Reading artifacts from GAV-list at " + setupInfo.getToCoordinates());
+        }
+    }
+
     private void checkTwoConflicts(boolean checkConflict1, boolean checkConflict2, String flag) throws CLIException {
         if(checkConflict1 || checkConflict2) {
             throw new CLIException("Other flag already set.", flag);
@@ -187,6 +216,7 @@ public abstract class MavenCentralAnalysis {
      */
     public Map<ArtifactIdent, Artifact> runAnalysis(String[] args) throws URISyntaxException, IOException {
         parseCmdLine(args);
+        printRunInfo();
         if(setupInfo.isOutput()) {
             resolverFactory = new ResolverFactory(setupInfo.isOutput(), setupInfo.getToOutputDirectory(), processTransitives);
         } else {
