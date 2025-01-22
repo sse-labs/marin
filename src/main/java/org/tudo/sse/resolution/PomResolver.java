@@ -782,20 +782,33 @@ public class PomResolver {
     }
 
     private List<String> splitSets(String range) {
-        List<String> sets = new ArrayList<>();
+        List<String> ranges = new ArrayList<>();
         StringBuilder current = new StringBuilder();
-        int i = 0;
-        while(i < range.length()) {
-            while(i < range.length() && range.charAt(i) != ']' && range.charAt(i) != ')') {
-                current.append(range.charAt(i));
-                i++;
+        boolean isRangeOpen = false;
+
+        for(int i = 0; i < range.length(); i++){
+            switch(range.charAt(i)){
+                case '[':
+                case '(':
+                    isRangeOpen = true;
+                    current = new StringBuilder();
+                    current.append(range.charAt(i));
+                    break;
+                case ']':
+                case ')':
+                    current.append(range.charAt(i));
+                    isRangeOpen = false;
+                    ranges.add(current.toString());
+                    break;
+                default:
+                    // Keep anything inside a range (whitespaces, etc) as is, drop anything between ranges (commas, whitespaces)
+                    if(isRangeOpen)
+                        current.append(range.charAt(i));
+                    break;
             }
-             current.append(range.charAt(i));
-            i += 2;
-            sets.add(current.toString());
-            current = new StringBuilder();
         }
-        return sets;
+
+        return ranges;
     }
 
     private static boolean isVersionRange(String version) {
