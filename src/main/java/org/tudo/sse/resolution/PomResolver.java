@@ -322,6 +322,8 @@ public class PomResolver {
         } catch (IOException | XmlPullParserException e) {
             try { input.close(); } catch (Exception ignored) {}
             throw new PomResolutionException(e.getMessage(), identifier, e);
+        } catch (Exception x) {
+
         }
     }
 
@@ -407,10 +409,12 @@ public class PomResolver {
             try {
                 pomInformation.setParent(processArtifact(pomInformation.getRawPomFeatures().getParent()));
             } catch(PomResolutionException e) {
-                log.error("Failed to resolve parent: " + e.getMessage());
+                log.error("Failed to resolve parent: {}", e.getMessage());
             } catch (FileNotFoundException ignored) {}
             catch (IOException e) {
                 throw new RuntimeException(e);
+            } catch(Exception e){
+                log.error("Unexpected exception while resolving parent: {}", e.getMessage());
             }
         }
 
@@ -432,13 +436,18 @@ public class PomResolver {
         ArrayList<Artifact> imports = new ArrayList<>();
 
         for(org.tudo.sse.model.pom.Dependency dependency: managedDependencies) {
-            if(dependency.getScope() != null && dependency.getScope().equals("import")) {
-                dependency = resolveVersion(dependency, info);
-                Artifact temp = processArtifact(dependency.getIdent());
-                if(temp != null) {
-                    imports.add(temp);
+            try {
+                if(dependency.getScope() != null && dependency.getScope().equals("import")) {
+                    dependency = resolveVersion(dependency, info);
+                    Artifact temp = processArtifact(dependency.getIdent());
+                    if(temp != null) {
+                        imports.add(temp);
+                    }
                 }
+            } catch (Exception e){
+                log.error("Failed to resolve import {} : {}", dependency.getIdent().getCoordinates(), e.getMessage());
             }
+
         }
 
         return imports;
