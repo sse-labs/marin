@@ -322,8 +322,6 @@ public class PomResolver {
         } catch (IOException | XmlPullParserException e) {
             try { input.close(); } catch (Exception ignored) {}
             throw new PomResolutionException(e.getMessage(), identifier, e);
-        } catch (Exception x) {
-
         }
     }
 
