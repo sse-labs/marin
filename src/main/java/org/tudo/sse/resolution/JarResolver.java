@@ -229,10 +229,12 @@ public class JarResolver {
 
                 currentEntry = jarInputStream.getNextJarEntry();
             }
-        } catch (IOException | IllegalArgumentException | BytecodeProcessingFailedException e) {
+        } catch (Exception e) {
+            // OPAL throws some unexpected exceptions when faced with malformed JARs in the index (e.g. ArrayIndexOutOfBounds)
+            // Therefore, we catch all exceptions related to the processing of class files here, and wrap them.
             throw new JarResolutionException(e.getMessage());
         }
-            return entries;
+        return entries;
     }
 
     private DataInputStream getEntryByteStream(InputStream in) throws IOException  {
