@@ -407,10 +407,12 @@ public class PomResolver {
             try {
                 pomInformation.setParent(processArtifact(pomInformation.getRawPomFeatures().getParent()));
             } catch(PomResolutionException e) {
-                log.error("Failed to resolve parent: " + e.getMessage());
+                log.error("Failed to resolve parent: {}", e.getMessage());
             } catch (FileNotFoundException ignored) {}
             catch (IOException e) {
                 throw new RuntimeException(e);
+            } catch(Exception e){
+                log.error("Unexpected exception while resolving parent: {}", e.getMessage());
             }
         }
 
@@ -432,13 +434,18 @@ public class PomResolver {
         ArrayList<Artifact> imports = new ArrayList<>();
 
         for(org.tudo.sse.model.pom.Dependency dependency: managedDependencies) {
-            if(dependency.getScope() != null && dependency.getScope().equals("import")) {
-                dependency = resolveVersion(dependency, info);
-                Artifact temp = processArtifact(dependency.getIdent());
-                if(temp != null) {
-                    imports.add(temp);
+            try {
+                if(dependency.getScope() != null && dependency.getScope().equals("import")) {
+                    dependency = resolveVersion(dependency, info);
+                    Artifact temp = processArtifact(dependency.getIdent());
+                    if(temp != null) {
+                        imports.add(temp);
+                    }
                 }
+            } catch (Exception e){
+                log.error("Failed to resolve import {} : {}", dependency.getIdent().getCoordinates(), e.getMessage());
             }
+
         }
 
         return imports;
@@ -782,20 +789,33 @@ public class PomResolver {
     }
 
     private List<String> splitSets(String range) {
-        List<String> sets = new ArrayList<>();
+        List<String> ranges = new ArrayList<>();
         StringBuilder current = new StringBuilder();
-        int i = 0;
-        while(i < range.length()) {
-            while(i < range.length() && range.charAt(i) != ']' && range.charAt(i) != ')') {
-                current.append(range.charAt(i));
-                i++;
+        boolean isRangeOpen = false;
+
+        for(int i = 0; i < range.length(); i++){
+            switch(range.charAt(i)){
+                case '[':
+                case '(':
+                    isRangeOpen = true;
+                    current = new StringBuilder();
+                    current.append(range.charAt(i));
+                    break;
+                case ']':
+                case ')':
+                    current.append(range.charAt(i));
+                    isRangeOpen = false;
+                    ranges.add(current.toString());
+                    break;
+                default:
+                    // Keep anything inside a range (whitespaces, etc) as is, drop anything between ranges (commas, whitespaces)
+                    if(isRangeOpen)
+                        current.append(range.charAt(i));
+                    break;
             }
-             current.append(range.charAt(i));
-            i += 2;
-            sets.add(current.toString());
-            current = new StringBuilder();
         }
-        return sets;
+
+        return ranges;
     }
 
     private static boolean isVersionRange(String version) {
