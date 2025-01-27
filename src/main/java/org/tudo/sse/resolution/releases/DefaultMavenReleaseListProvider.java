@@ -16,18 +16,30 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-
+/**
+ * This default implementation of IReleaseListProvider obtains a list of releases for a given GA-Tuple by
+ * querying the maven-metadata.xml file hosted on Maven Central. It will throw an IOException if file
+ * access files for any given reason.
+ *
+ * @author Johannes Düsing
+ */
 public class DefaultMavenReleaseListProvider implements IReleaseListProvider{
 
     private final MetadataXpp3Reader reader = new MetadataXpp3Reader();
     private final MavenCentralRepository mavenRepo = MavenCentralRepository.getInstance();
 
-    private static DefaultMavenReleaseListProvider instance = new DefaultMavenReleaseListProvider();
+    // Singleton pattern implementation
+    private final static DefaultMavenReleaseListProvider instance = new DefaultMavenReleaseListProvider();
 
+    /**
+     * Access the singleton instance of DefaultMavenReleaseListProvider
+     * @return The only instance of this class
+     */
     public static DefaultMavenReleaseListProvider getInstance() {
         return instance;
     }
 
+    // Singleton pattern implementation
     private DefaultMavenReleaseListProvider(){}
 
     @Override

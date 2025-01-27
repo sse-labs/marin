@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.tudo.sse.IndexWalker;
 import org.tudo.sse.model.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.io.*;
 import java.net.URI;
@@ -21,6 +22,7 @@ import org.apache.commons.io.IOUtils;
 import org.tudo.sse.model.pom.Dependency;
 import org.tudo.sse.model.pom.License;
 import org.tudo.sse.model.pom.RawPomFeatures;
+import org.tudo.sse.resolution.releases.DefaultMavenReleaseListProvider;
 import org.tudo.sse.resolution.releases.IReleaseListProvider;
 
 
@@ -103,6 +105,32 @@ class PomResolverTest {
 
     @Test
     void resolveDependencies() {
+        Map<String, Object> allTestData = (Map<String, Object>) json.get("resolveDependencies");
+
+        Map<String, List<String>> releaseListData = new HashMap<>();
+        for(Map<String, Object> entry : (List<Map<String, Object>>)allTestData.get("versionLists")){
+            String g = (String)entry.get("g");
+            String a = (String)entry.get("a");
+            List<String> versions = (List<String>)entry.get("v");
+            String ga = g + ":" + a;
+
+            releaseListData.put(ga, versions);
+        }
+
+        IReleaseListProvider mockProvider = new IReleaseListProvider() {
+            @Override
+            public List<String> getReleases(ArtifactIdent identifier) throws IOException {
+                if(releaseListData.containsKey(identifier.getGA())){
+                    return releaseListData.get(identifier.getGA());
+                } else {
+                    fail("No mock release data available for " + identifier.getGA());
+                    return null;
+                }
+            }
+        };
+
+        pomResolver = new PomResolver(true, mockProvider);
+
         List<ArtifactIdent> idents = new ArrayList<>();
 
         //get three idents with complex resolution cases
@@ -115,7 +143,7 @@ class PomResolverTest {
         idents.add(new ArtifactIdent("org.eclipse.xtext", "org.eclipse.xtext.builder.standalone", "2.6.2"));
 
         //set up expected values from mvn dependency tree to the json file
-        ArrayList<ArrayList<String>> temp = (ArrayList<ArrayList<String>>) json.get("resolveDependencies");
+        ArrayList<ArrayList<String>> temp = (ArrayList<ArrayList<String>>) allTestData.get("tests");
 
         //check expected values against processed ones?
         List<Artifact> results = pomResolver.resolveArtifacts(idents);

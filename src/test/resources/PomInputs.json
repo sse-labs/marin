@@ -278,78 +278,103 @@
       "dependencyManagement": "null"
     }
   ],
-  "resolveDependencies": [
-    ["com.google.common.html.types:proto:1.0.0:compile",
-      "com.google.guava:guava:18.0:compile",
-      "com.google.protobuf:protobuf-java:2.5.0:compile",
-      "com.google.gwt:gwt-user:2.8.0-beta1:compile",
-      "com.google.gwt:gwt-dev:2.8.0-beta1:compile",
-      "javax.annotation:jsr250-api:1.0:compile",
-      "com.google.errorprone:error_prone_annotations:2.0.2:compile",
-      "junit:junit:4.13.2:test",
-      "com.google.guava:guava-testlib:18.0:compile"
+  "resolveDependencies": {
+    "versionLists": [
+      {"g": "org.eclipse.emf","a": "org.eclipse.emf.codegen","v": ["2.9.0-v20130902-0605","2.9.0-v20140203-1126","2.10.0","2.10.0-v20140519-0339","2.10.0-v20140901-1055","2.10.0-v20150123-0357","2.10.0-v20150123-0452","2.11.0","2.11.0-v20150806-0404","2.14.0","2.16.0","2.19.0","2.20.0","2.21.0","2.22.0","2.23.0","2.24.0","2.25.0"]},
+      {"g": "org.eclipse.emf","a": "org.eclipse.emf.common","v": ["2.7.0-v20110605-0747","2.8.0-v20120911-0500","2.9.0-v20130528-0742","2.9.1-v20130827-0309","2.9.2-v20131212-0545","2.10.0-v20140514-1158","2.10.1","2.10.1-v20140901-1043","2.10.1-v20150123-0348","2.11.0","2.11.0-v20150123-0347","2.11.0-v20150805-0538","2.12.0","2.15.0","2.16.0","2.17.0","2.18.0","2.19.0","2.20.0","2.21.0","2.22.0","2.23.0","2.24.0","2.25.0","2.26.0","2.27.0","2.28.0","2.29.0","2.30.0","2.31.0","2.40.0"]},
+      {"g": "org.eclipse.emf","a": "org.eclipse.emf.ecore","v": ["2.7.0-v20110605-0747","2.8.0-v20120911-0500","2.9.0-v20130528-0742","2.9.1-v20130827-0309","2.9.2-v20131212-0545","2.10.0-v20140514-1158","2.10.1","2.10.1-v20140901-1043","2.10.2-v20150123-0348","2.11.0-v20150123-0347","2.11.1","2.11.1-v20150805-0538","2.11.2","2.12.0","2.15.0","2.18.0","2.19.0","2.20.0","2.21.0","2.22.0","2.23.0","2.24.0","2.25.0","2.26.0","2.27.0","2.28.0","2.29.0","2.33.0","2.34.0","2.35.0","2.36.0","2.37.0","2.38.0"]},
+      {"g": "org.eclipse.jdt","a": "org.eclipse.jdt.core","v": ["3.12.2","3.12.3","3.13.0","3.13.50","3.13.100","3.13.101","3.13.102","3.14.0","3.15.0","3.16.0","3.17.0","3.18.0","3.19.0","3.20.0","3.21.0","3.22.0","3.23.0","3.24.0","3.25.0","3.26.0","3.27.0","3.28.0","3.29.0","3.30.0","3.31.0","3.32.0","3.33.0","3.34.0","3.35.0","3.36.0","3.37.0","3.38.0","3.39.0","3.40.0"]},
+      {"g": "org.eclipse.platform","a": "org.eclipse.core.runtime","v": ["3.12.0","3.13.0","3.14.0","3.15.0","3.15.100","3.15.200","3.15.300","3.16.0","3.17.0","3.17.100","3.18.0","3.19.0","3.20.0","3.20.100","3.22.0","3.23.0","3.24.0","3.24.100","3.25.0","3.26.0","3.26.100","3.27.0","3.29.0","3.30.0","3.31.0","3.31.100","3.32.0"]},
+      {"g": "com.io7m.jstructural","a": "io7m-jstructural-tools","v": ["2.0.0","2.1.0","3.0.0","3.0.1","3.1.0","4.0.0","4.1.0","4.2.0","5.0.0"]},
+      {"g": "org.eclipse.jdt","a": "org.eclipse.jdt.launching","v": ["3.8.101","3.9.0","3.9.50","3.9.51","3.9.52","3.9.100","3.10.0","3.11.0","3.12.0","3.13.0","3.14.0","3.15.0","3.16.0","3.17.0","3.17.100","3.18.0","3.19.0","3.19.100","3.19.200","3.19.300","3.19.400","3.19.500","3.19.600","3.19.700","3.19.800","3.19.900","3.20.0","3.20.100","3.21.0","3.21.100","3.22.0","3.23.0","3.23.100"]},
+      {"g": "com.io7m.jaux","a": "io7m-jaux","v": ["2.0.0","2.1.0","2.1.1","2.1.2","2.2.0","2.3.0","2.4.0","2.5.0","2.6.0","2.7.0","2.8.0","2.9.0","3.0.0"]},
+      {"g": "org.eclipse.platform","a": "org.eclipse.debug.core","v": ["3.10.100","3.11.0","3.12.0","3.13.0","3.13.100","3.13.200","3.13.300","3.14.0","3.14.100","3.15.0","3.15.100","3.16.0","3.17.0","3.18.0","3.18.100","3.18.200","3.18.300","3.19.0","3.19.100","3.20.0","3.20.100","3.21.0","3.21.100","3.21.200","3.21.300","3.21.400","3.21.500","3.22.0"]},
+      {"g": "org.eclipse.platform","a": "org.eclipse.text","v": ["3.6.0","3.6.100","3.6.300","3.7.0","3.8.0","3.8.100","3.8.200","3.9.0","3.10.0","3.10.100","3.10.200","3.10.300","3.10.400","3.11.0","3.12.0","3.12.100","3.12.200","3.12.300","3.13.0","3.13.100","3.14.0","3.14.100","3.14.200"]},
+      {"g": "org.eclipse.platform","a": "org.eclipse.core.resources","v": ["3.11.1","3.12.0","3.13.0","3.13.100","3.13.200","3.13.300","3.13.400","3.13.500","3.13.600","3.13.700","3.13.800","3.13.900","3.14.0","3.15.0","3.15.100","3.16.0","3.16.100","3.17.0","3.18.0","3.18.100","3.18.200","3.19.0","3.19.100","3.20.0","3.20.100","3.20.200","3.21.0","3.22.0"]},
+      {"g": "org.opencoweb","a": "coweb-bots","v": ["0.4","0.5","0.6","0.7","0.8","0.8.1","0.8.2","0.8.3","0.8.3.1","0.8.4","1.0"]},
+      {"g": "com.google.guava","a": "guava","v": ["r03","r05","r06","r07","r08","r09","10.0-rc1","10.0-rc2","10.0-rc3","10.0","10.0.1","11.0-rc1","11.0","11.0.1","11.0.2","12.0-rc1","12.0-rc2","12.0","12.0.1","13.0-rc1","13.0-rc2","13.0","13.0.1","14.0-rc1","14.0-rc2","14.0-rc3","14.0","14.0.1","15.0-rc1","15.0","16.0-rc1","16.0","16.0.1","17.0-rc1","17.0-rc2","17.0","18.0-rc1","18.0-rc2","18.0","19.0-rc1","19.0-rc2","19.0-rc3","19.0","20.0-rc1","20.0","21.0-rc1","21.0-rc2","21.0","22.0-rc1","22.0-rc1-android","22.0","22.0-android","23.0-rc1","23.0-rc1-android","23.0","23.0-android","23.1-android","23.1-jre","23.2-android","23.2-jre","23.3-android","23.3-jre","23.4-android","23.4-jre","23.5-android","23.5-jre","23.6-android","23.6-jre","23.6.1-android","23.6.1-jre","24.0-android","24.0-jre","24.1-android","24.1-jre","24.1.1-android","24.1.1-jre","25.0-android","25.0-jre","25.1-android","25.1-jre","26.0-android","26.0-jre","27.0-android","27.0-jre","27.0.1-android","27.0.1-jre","27.1-android","27.1-jre","28.0-android","28.0-jre","28.1-android","28.1-jre","28.2-android","28.2-jre","29.0-android","29.0-jre","30.0-android","30.0-jre","30.1-android","30.1-jre","30.1.1-android","30.1.1-jre","31.0-android","31.0-jre","31.0.1-android","31.0.1-jre","31.1-android","31.1-jre","32.0.0-android","32.0.0-jre","32.0.1-android","32.0.1-jre","32.1.0-android","32.1.0-jre","32.1.1-android","32.1.1-jre","32.1.2-android","32.1.2-jre","32.1.3-android","32.1.3-jre","33.0.0-android","33.0.0-jre","33.1.0-android","33.1.0-jre","33.2.0-android","33.2.0-jre","33.2.1-android","33.2.1-jre","33.3.0-android","33.3.0-jre","33.3.1-android","33.3.1-jre","33.4.0-android","33.4.0-jre"]},
+      {"g": "org.eclipse.emf","a": "org.eclipse.emf.ecore.xmi","v": ["2.7.0-v20110520-1406","2.8.0-v20120911-0500","2.9.0-v20130528-0742","2.9.1-v20130827-0309","2.9.1-v20131212-0545","2.10.0-v20140514-1158","2.10.1","2.10.1-v20140901-1043","2.10.2-v20150123-0348","2.11.0-v20150123-0347","2.11.1","2.11.1-v20150805-0538","2.12.0","2.15.0","2.16.0","2.17.0","2.18.0","2.35.0","2.36.0","2.37.0","2.38.0"]},
+      {"g": "org.opencoweb","a": "cowebx-widgets-dojo","v": ["0.4"]},
+      {"g": "com.io7m.jlog","a": "io7m-jlog","v": ["2.0.0","2.1.0","2.2.0","2.3.0","2.3.1","2.4.0","3.1.0"]},
+      {"g": "org.antlr","a": "antlr-runtime","v": ["3.0","3.0.1","3.1","3.1.1","3.1.2","3.1.2-1","3.1.3","3.2","3.3","3.4-beta3","3.4-beta4","3.4","3.5-rc-1","3.5-rc-2","3.5","3.5.1","3.5.2","3.5.3"]},
+      {"g": "junit","a": "junit","v": ["3.7","3.8","3.8.1","3.8.2","4.0","4.1","4.2","4.3","4.3.1","4.4","4.5","4.6","4.7","4.8","4.8.1","4.8.2","4.9","4.10","4.11-beta-1","4.11","4.12-beta-1","4.12-beta-2","4.12-beta-3","4.12","4.13-beta-1","4.13-beta-2","4.13-beta-3","4.13-rc-1","4.13-rc-2","4.13","4.13.1","4.13.2"]},
+      {"g": "org.opencoweb","a": "coweb-server","v": ["0.4","0.5","0.6","0.7","0.8","0.8.1","0.8.2","0.8.3","0.8.3.1","0.8.4","1.0"]},
+      {"g": "com.io7m.jnull","a": "io7m-jnull-core","v": ["1.0.0","1.0.1","1.0.2"]},
+      {"g": "org.opencoweb","a": "coweb-javascript","v": ["0.4","0.5","0.6","0.7","0.8","0.8.1","0.8.2","0.8.3","0.8.3.1","0.8.4","1.0"]}
     ],
-    ["org.springframework.boot:spring-boot-starter-actuator:1.2.2.RELEASE:compile",
-      "org.springframework.boot:spring-boot-starter-amqp:1.2.2.RELEASE:compile",
-      "org.springframework.boot:spring-boot-starter-integration:1.2.2.RELEASE:compile",
-      "org.springframework.integration:spring-integration-java-dsl:1.0.1.RELEASE:compile",
-      "org.springframework.integration:spring-integration-amqp:4.1.0.RELEASE:compile",
-      "org.springframework.integration:spring-integration-event:4.1.0.RELEASE:compile",
-      "org.springframework.cloud:spring-cloud-config-client:1.0.0.RELEASE:compile",
-      "org.springframework.cloud:spring-cloud-spring-service-connector:1.1.0.RELEASE:compile",
-      "org.springframework.cloud:spring-cloud-localconfig-connector:1.1.0.RELEASE:compile",
-      "org.springframework.cloud:spring-cloud-cloudfoundry-connector:1.1.0.RELEASE:compile",
-      "org.springframework.boot:spring-boot-starter-test:1.2.2.RELEASE:test",
-      "org.projectlombok:lombok:1.12.6:compile"
-    ],
-    ["org.springframework.boot:spring-boot-starter:1.2.0.RELEASE:compile",
-      "org.springframework.boot:spring-boot-starter-tomcat:1.2.0.RELEASE:compile",
-      "com.fasterxml.jackson.core:jackson-databind:2.4.4:compile",
-      "org.hibernate:hibernate-validator:5.1.3.Final:compile",
-      "org.springframework:spring-core:4.1.3.RELEASE:compile",
-      "org.springframework:spring-web:4.1.3.RELEASE:compile",
-      "org.glassfish.jersey.core:jersey-server:2.13:compile",
-      "org.glassfish.jersey.containers:jersey-container-servlet-core:2.13:compile",
-      "org.glassfish.jersey.containers:jersey-container-servlet:2.13:compile",
-      "org.glassfish.jersey.ext:jersey-spring3:2.13:compile",
-      "org.glassfish.jersey.media:jersey-media-json-jackson:2.13:compile",
-      "junit:junit:4.12:test",
-      "org.mockito:mockito-core:1.10.8:test",
-      "org.hamcrest:hamcrest-library:1.3:test",
-      "org.springframework:spring-test:4.1.3.RELEASE:test"
-    ],
-    [
-      "org.apache.maven:maven-plugin-api:2.0:compile",
-      "org.apache.maven:maven-core:3.0:compile",
-      "junit:junit:4.8.2:compile",
-      "org.ops4j.pax.runner:pax-runner-platform:1.5.0:compile",
-      "org.apache.commons:commons-compress:1.1:compile",
-      "commons-io:commons-io:1.4:compile",
-      "log4j:log4j:1.2.14:compile"
-    ],
-    [
-      "org.opencoweb:coweb-bots:1.0:compile",
-      "org.opencoweb:coweb-server:1.0:compile",
-      "org.opencoweb:coweb-javascript:1.0:compile",
-      "org.opencoweb:cowebx-widgets-dojo:0.4:compile"
-    ],
-    [
-      "com.io7m.jstructural:io7m-jstructural-tools:2.1.0:compile",
-      "com.io7m.jnull:io7m-jnull-core:1.0.2:compile",
-      "com.io7m.junreachable:io7m-junreachable-core:1.0.0:compile",
-      "com.io7m.junreachable:io7m-junreachable-core:1.0.0:compile"
-    ],
-    [
-      "log4j:log4j:1.2.16:compile",
-      "org.eclipse.xtext:org.eclipse.xtext.xbase:2.6.2:compile",
-      "org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.6.2:compile",
-      "org.eclipse.emf:org.eclipse.emf.common:2.40.0:compile",
-      "org.eclipse.emf:org.eclipse.emf.ecore:2.38.0:compile",
-      "org.eclipse.emf:org.eclipse.emf.codegen:2.25.0:runtime",
-      "com.google.inject:guice:3.0:compile",
-      "com.google.guava:guava:14.0.1:compile"
+    "tests": [
+      ["com.google.common.html.types:proto:1.0.0:compile",
+        "com.google.guava:guava:18.0:compile",
+        "com.google.protobuf:protobuf-java:2.5.0:compile",
+        "com.google.gwt:gwt-user:2.8.0-beta1:compile",
+        "com.google.gwt:gwt-dev:2.8.0-beta1:compile",
+        "javax.annotation:jsr250-api:1.0:compile",
+        "com.google.errorprone:error_prone_annotations:2.0.2:compile",
+        "junit:junit:4.13.2:test",
+        "com.google.guava:guava-testlib:18.0:compile"
+      ],
+      ["org.springframework.boot:spring-boot-starter-actuator:1.2.2.RELEASE:compile",
+        "org.springframework.boot:spring-boot-starter-amqp:1.2.2.RELEASE:compile",
+        "org.springframework.boot:spring-boot-starter-integration:1.2.2.RELEASE:compile",
+        "org.springframework.integration:spring-integration-java-dsl:1.0.1.RELEASE:compile",
+        "org.springframework.integration:spring-integration-amqp:4.1.0.RELEASE:compile",
+        "org.springframework.integration:spring-integration-event:4.1.0.RELEASE:compile",
+        "org.springframework.cloud:spring-cloud-config-client:1.0.0.RELEASE:compile",
+        "org.springframework.cloud:spring-cloud-spring-service-connector:1.1.0.RELEASE:compile",
+        "org.springframework.cloud:spring-cloud-localconfig-connector:1.1.0.RELEASE:compile",
+        "org.springframework.cloud:spring-cloud-cloudfoundry-connector:1.1.0.RELEASE:compile",
+        "org.springframework.boot:spring-boot-starter-test:1.2.2.RELEASE:test",
+        "org.projectlombok:lombok:1.12.6:compile"
+      ],
+      ["org.springframework.boot:spring-boot-starter:1.2.0.RELEASE:compile",
+        "org.springframework.boot:spring-boot-starter-tomcat:1.2.0.RELEASE:compile",
+        "com.fasterxml.jackson.core:jackson-databind:2.4.4:compile",
+        "org.hibernate:hibernate-validator:5.1.3.Final:compile",
+        "org.springframework:spring-core:4.1.3.RELEASE:compile",
+        "org.springframework:spring-web:4.1.3.RELEASE:compile",
+        "org.glassfish.jersey.core:jersey-server:2.13:compile",
+        "org.glassfish.jersey.containers:jersey-container-servlet-core:2.13:compile",
+        "org.glassfish.jersey.containers:jersey-container-servlet:2.13:compile",
+        "org.glassfish.jersey.ext:jersey-spring3:2.13:compile",
+        "org.glassfish.jersey.media:jersey-media-json-jackson:2.13:compile",
+        "junit:junit:4.12:test",
+        "org.mockito:mockito-core:1.10.8:test",
+        "org.hamcrest:hamcrest-library:1.3:test",
+        "org.springframework:spring-test:4.1.3.RELEASE:test"
+      ],
+      [
+        "org.apache.maven:maven-plugin-api:2.0:compile",
+        "org.apache.maven:maven-core:3.0:compile",
+        "junit:junit:4.8.2:compile",
+        "org.ops4j.pax.runner:pax-runner-platform:1.5.0:compile",
+        "org.apache.commons:commons-compress:1.1:compile",
+        "commons-io:commons-io:1.4:compile",
+        "log4j:log4j:1.2.14:compile"
+      ],
+      [
+        "org.opencoweb:coweb-bots:1.0:compile",
+        "org.opencoweb:coweb-server:1.0:compile",
+        "org.opencoweb:coweb-javascript:1.0:compile",
+        "org.opencoweb:cowebx-widgets-dojo:0.4:compile"
+      ],
+      [
+        "com.io7m.jstructural:io7m-jstructural-tools:2.1.0:compile",
+        "com.io7m.jnull:io7m-jnull-core:1.0.2:compile",
+        "com.io7m.junreachable:io7m-junreachable-core:1.0.0:compile",
+        "com.io7m.junreachable:io7m-junreachable-core:1.0.0:compile"
+      ],
+      [
+        "log4j:log4j:1.2.16:compile",
+        "org.eclipse.xtext:org.eclipse.xtext.xbase:2.6.2:compile",
+        "org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.6.2:compile",
+        "org.eclipse.emf:org.eclipse.emf.common:2.40.0:compile",
+        "org.eclipse.emf:org.eclipse.emf.ecore:2.38.0:compile",
+        "org.eclipse.emf:org.eclipse.emf.codegen:2.25.0:runtime",
+        "com.google.inject:guice:3.0:compile",
+        "com.google.guava:guava:14.0.1:compile"
+      ]
     ]
-  ],
+  },
   "versionRanges": [
     {
       "expr": "org.springframework.boot:spring-boot-starter-web:[2.5.0]:compile",
