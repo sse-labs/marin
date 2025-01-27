@@ -351,21 +351,40 @@
     ]
   ],
   "versionRanges": [
-    ["org.springframework.boot:spring-boot-starter-web:[2.5.0]:compile",
-      "com.fasterxml.jackson.core:jackson-databind:[2.9.0,2.10.0]:compile",
-      "org.hibernate:hibernate-core:(5.2.0,5.3.0):compile",
-      "com.google.guava:guava:[28.0,):compile",
-      "org.apache.httpcomponents:httpclient:(,4.5.13],[4.5.15,):compile",
-      "commons-io:commons-io:(,2.7],[2.8,):compile"
-    ],
-    [
-      "org.springframework.boot:spring-boot-starter-web:2.5.0:compile",
-      "com.fasterxml.jackson.core:jackson-databind:2.10.0:compile",
-      "org.hibernate:hibernate-core:5.3.0.CR2:compile",
-      "com.google.guava:guava:33.4.0-jre:compile",
-      "org.apache.httpcomponents:httpclient:4.5.13:compile",
-      "commons-io:commons-io:2.18.0:compile"
-    ]
+    {
+      "expr": "org.springframework.boot:spring-boot-starter-web:[2.5.0]:compile",
+      "avail": ["1.0.0", "2.0.0", "2.0.1", "2.5.0", "2.5.0-SNAPSHOT", "2.5.0.1", "2.6", "3.0"],
+      "res": "org.springframework.boot:spring-boot-starter-web:2.5.0:compile"
+    },{
+      "expr": "com.fasterxml.jackson.core:jackson-databind:[2.9.0,2.10.0]:compile",
+      "avail": ["1.0.0", "2.0.0", "2.8.9", "2.9.1", "2.9.10", "2.10.0", "3.10.0"],
+      "res": "com.fasterxml.jackson.core:jackson-databind:2.10.0:compile"
+    },
+    {
+      "expr": "com.fasterxml.jackson.core:jackson-databind:[2.9.0,2.10.0]:compile",
+      "avail": ["1.0.0", "2.0.0", "2.8.9", "2.9.1", "2.9.10", "3.10.0"],
+      "res": "com.fasterxml.jackson.core:jackson-databind:2.9.10:compile"
+    },
+    {
+      "expr": "org.hibernate:hibernate-core:(5.2.0,5.3.0):compile",
+      "avail": ["1.0.0", "5.2.0", "5.3.0", "5.3.0.CR2", "5.2.9"],
+      "res": "org.hibernate:hibernate-core:5.3.0.CR2:compile"
+    },
+    {
+      "expr": "com.google.guava:guava:[28.0,):compile",
+      "avail": ["1.0", "28.0", "29.0", "31.8", "42.42-hitch"],
+      "res": "com.google.guava:guava:42.42-hitch:compile"
+    },
+    {
+      "expr": "org.apache.httpcomponents:httpclient:(,4.5.13],[4.5.15,):compile",
+      "avail": ["4.0.0", "4.2.2", "1.0.0", "4.5.13", "4.5.14"],
+      "res": "org.apache.httpcomponents:httpclient:4.5.13:compile"
+    },
+    {
+      "expr": "commons-io:commons-io:(,2.7],[2.8,):compile",
+      "avail": ["2.7", "2.7.5", "2.8", "2.10", "2.18.0"],
+      "res": "commons-io:commons-io:2.18.0:compile"
+    }
   ],
 
   "allTransitives" : {

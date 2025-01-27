@@ -2,8 +2,6 @@ package org.tudo.sse.resolution;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.maven.artifact.repository.metadata.Metadata;
-import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Reader;
 import org.apache.maven.model.*;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 
@@ -18,6 +16,8 @@ import org.tudo.sse.model.*;
 import org.tudo.sse.model.pom.License;
 import org.tudo.sse.model.pom.PomInformation;
 import org.tudo.sse.model.pom.RawPomFeatures;
+import org.tudo.sse.resolution.releases.DefaultMavenReleaseListProvider;
+import org.tudo.sse.resolution.releases.IReleaseListProvider;
 import org.tudo.sse.utils.MavenCentralRepository;
 import scala.Tuple2;
 
@@ -41,81 +41,30 @@ public class PomResolver {
     private static final Logger log = LogManager.getLogger(PomResolver.class);
     private final Map<String, Function<PomInformation, String>> predefinedPomValues;
 
+    private final IReleaseListProvider releaseListProvider;
+
     /**
      * In the constructor for this class, a boolean is passed to determine if transitive dependencies should be resolved when the resolution is run.
      *
      * @param resolveTransitives determines if transitive dependencies are to be resolved
      */
     public PomResolver(boolean resolveTransitives) {
-        output = false;
-        pathToDirectory = null;
-        this.resolveTransitives = resolveTransitives;
-        predefinedPomValues = new HashMap<>();
-        predefinedPomValues.put("project.version", pom -> pom.getIdent().getVersion());
-        predefinedPomValues.put("pom.version", pom -> pom.getIdent().getVersion());
-        predefinedPomValues.put("version", pom -> pom.getIdent().getVersion());
-        predefinedPomValues.put("pom.currentVersion", pom -> pom.getIdent().getVersion());
-        predefinedPomValues.put("project.parent.version", pom -> {
-            if (pom.getRawPomFeatures().getParent() != null) {
-                return pom.getRawPomFeatures().getParent().getVersion();
-            } else {
-                return null;
-            }
-        });
-        predefinedPomValues.put("pom.parent.version", pom -> {
-            if (pom.getRawPomFeatures().getParent() != null) {
-                return pom.getRawPomFeatures().getParent().getVersion();
-            } else {
-                return null;
-            }
-        });
-        predefinedPomValues.put("parent.version", pom -> {
-            if (pom.getRawPomFeatures().getParent() != null) {
-                return pom.getRawPomFeatures().getParent().getVersion();
-            } else {
-                return null;
-            }
-        });
-        predefinedPomValues.put("groupId", pom -> pom.getIdent().getGroupID());
-        predefinedPomValues.put("project.groupId", pom -> pom.getIdent().getGroupID());
-        predefinedPomValues.put("pom.groupId", pom -> pom.getIdent().getGroupID());
-        predefinedPomValues.put("project.parent.groupId", pom -> {
-            if (pom.getRawPomFeatures().getParent() != null) {
-                return pom.getRawPomFeatures().getParent().getGroupID();
-            } else {
-                return null;
-            }
-        });
-        predefinedPomValues.put("parent.groupId", pom -> {
-            if (pom.getRawPomFeatures().getParent() != null) {
-                return pom.getRawPomFeatures().getParent().getGroupID();
-            } else {
-                return null;
-            }
-        });
-        predefinedPomValues.put("artifactId", pom -> pom.getIdent().getArtifactID());
-        predefinedPomValues.put("project.artifactId", pom -> pom.getIdent().getArtifactID());
-        predefinedPomValues.put("pom.artifactId", pom -> pom.getIdent().getArtifactID());
-        predefinedPomValues.put("project.parent.artifactId", pom -> {
-            if (pom.getRawPomFeatures().getParent() != null) {
-                return pom.getRawPomFeatures().getParent().getArtifactID();
-            } else {
-                return null;
-            }
-        });
-        predefinedPomValues.put("parent.artifactId", pom -> {
-            if (pom.getRawPomFeatures().getParent() != null) {
-                return pom.getRawPomFeatures().getParent().getArtifactID();
-            } else {
-                return null;
-            }
-        });
+        this(resolveTransitives, DefaultMavenReleaseListProvider.getInstance());
     }
 
-    public PomResolver(boolean output, Path pathToDirectory, boolean resolveTransitives) {
+    public PomResolver(boolean resolveTransitives, IReleaseListProvider provider) {
+        this(false, null, resolveTransitives, provider);
+    }
+
+    public PomResolver(boolean output, Path pathToDirectory, boolean resolveTransitives){
+        this(output, pathToDirectory, resolveTransitives, DefaultMavenReleaseListProvider.getInstance());
+    }
+
+    public PomResolver(boolean output, Path pathToDirectory, boolean resolveTransitives, IReleaseListProvider provider) {
         this.output = output;
         this.pathToDirectory = pathToDirectory;
         this.resolveTransitives = resolveTransitives;
+        this.releaseListProvider = provider;
         predefinedPomValues = new HashMap<>();
         predefinedPomValues.put("project.version", pom -> pom.getIdent().getVersion());
         predefinedPomValues.put("pom.version", pom -> pom.getIdent().getVersion());
@@ -730,7 +679,6 @@ public class PomResolver {
         List<VersionRange> ranges = new ArrayList<>();
         List<String> sets = splitSets(toResolve.getIdent().getVersion());
         GenericVersionScheme scheme = new GenericVersionScheme();
-        MetadataXpp3Reader reader = new MetadataXpp3Reader();
         String highestMatching = null;
 
         try {
@@ -738,41 +686,42 @@ public class PomResolver {
               ranges.add(scheme.parseVersionRange(splitRange));
             }
 
-            var xmlData = new BufferedReader(new InputStreamReader(Objects.requireNonNull(MavenRepo.openXMLFileInputStream(toResolve.getIdent()))));
-            Metadata meta = reader.read(xmlData);
-            xmlData.close();
+            List<Version> allVersions = new ArrayList<>();
 
-            if(meta.getVersioning() != null) {
-                List<String> versioning = meta.getVersioning().getVersions();
+            for(String version : releaseListProvider.getReleases(toResolve.getIdent())){
+                allVersions.add(scheme.parseVersion(version));
+            }
+
+            allVersions.sort(Version::compareTo);
+
+            if(!allVersions.isEmpty()) {
 
                 for (VersionRange range : ranges) {
                     if (range.getUpperBound() == null) {
                         //add comparison here to check that the lower bound is met
-                        Version current = scheme.parseVersion(versioning.get(versioning.size() - 1));
+                        Version current = allVersions.get(allVersions.size() - 1);
 
                         if (range.getLowerBound().isInclusive()) {
                             if (range.getLowerBound().getVersion().compareTo(current) <= 0) {
-                                highestMatching = versioning.get(versioning.size() - 1);
+                                highestMatching = allVersions.get(allVersions.size() - 1).toString();
                             }
                         } else {
                             if (range.getLowerBound().getVersion().compareTo(current) < 0) {
-                                highestMatching = versioning.get(versioning.size() - 1);
+                                highestMatching = allVersions.get(allVersions.size() - 1).toString();
                             }
                         }
                         return highestMatching;
                     }
                     if (!range.getUpperBound().isInclusive()) {
-                        for (String version : versioning) {
-                            Version current = scheme.parseVersion(version);
+                        for (Version current : allVersions) {
                             if (current.compareTo(range.getUpperBound().getVersion()) < 0) {
-                                highestMatching = version;
+                                highestMatching = current.toString();
                             }
                         }
                     } else {
-                        for (String version : versioning) {
-                            Version current = scheme.parseVersion(version);
+                        for (Version current : allVersions) {
                             if (current.compareTo(range.getUpperBound().getVersion()) <= 0) {
-                                highestMatching = version;
+                                highestMatching = current.toString();
                             }
                         }
                     }
@@ -781,7 +730,7 @@ public class PomResolver {
                 throw new IOException();
             }
 
-        } catch (IOException | XmlPullParserException | InvalidVersionSpecificationException | FileNotFoundException e) {
+        } catch (IOException | InvalidVersionSpecificationException  e) {
             log.error(e);
         }
 

@@ -21,6 +21,7 @@ import org.apache.commons.io.IOUtils;
 import org.tudo.sse.model.pom.Dependency;
 import org.tudo.sse.model.pom.License;
 import org.tudo.sse.model.pom.RawPomFeatures;
+import org.tudo.sse.resolution.releases.IReleaseListProvider;
 
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -213,18 +214,28 @@ class PomResolverTest {
 
     @Test
     void resolveVersionRanges() {
-        ArrayList<ArrayList<String>> temp = (ArrayList<ArrayList<String>>) json.get("versionRanges");
-        List<Dependency> inputs = new ArrayList<>();
+        ArrayList<Map<String, Object>> temp = (ArrayList<Map<String, Object>>) json.get("versionRanges");
 
-        for(String input : temp.get(0)) {
-            String[] parts = input.split(":");
-            inputs.add(new Dependency(new ArtifactIdent(parts[0], parts[1], parts[2]), parts[3], false, true, false, null));
-        }
+        for(Map<String, Object> testCase : temp){
+            String rangeExpr = (String) testCase.get("expr");
+            List<String> versionsAvailable = (List<String>) testCase.get("avail");
+            String expected = (String) testCase.get("res");
 
-        for(int i = 0; i < temp.get(1).size(); i++) {
-            inputs.get(i).getIdent().setVersion(pomResolver.resolveVersionRange(inputs.get(i)));
-            String actual = inputs.get(i).getIdent().getCoordinates() + ":" + inputs.get(i).getScope();
-            assertEquals(temp.get(1).get(i), actual);
+            IReleaseListProvider mockProvider = new IReleaseListProvider() {
+                @Override
+                public List<String> getReleases(ArtifactIdent identifier) throws IOException {
+                    return versionsAvailable;
+                }
+            };
+
+            PomResolver mockResolver = new PomResolver(true, mockProvider);
+            String[] parts = rangeExpr.split(":");
+            Dependency inputDependency = new Dependency(new ArtifactIdent(parts[0], parts[1], parts[2]), parts[3], false, true, false, null);
+
+            String result = mockResolver.resolveVersionRange(inputDependency);
+            inputDependency.getIdent().setVersion(result);
+
+            assertEquals(expected, inputDependency.getIdent().getCoordinates() + ":" + inputDependency.getScope());
         }
 
     }
