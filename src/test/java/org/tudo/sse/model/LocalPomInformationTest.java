@@ -7,9 +7,11 @@ import org.tudo.sse.model.pom.Dependency;
 import org.tudo.sse.model.pom.LocalPomInformation;
 import org.tudo.sse.model.pom.RawPomFeatures;
 import org.tudo.sse.resolution.PomResolver;
+import org.tudo.sse.resolution.releases.IReleaseListProvider;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,10 +28,40 @@ class LocalPomInformationTest {
         json = gson.fromJson(targetReader, new TypeToken<Map<String, Object>>() {}.getType());
     }
 
+    final IReleaseListProvider mockProvider = new IReleaseListProvider() {
+
+        private Map<String, List<String>> releaseListData = new HashMap<>();
+
+        private void buildMap(){
+            for(Map<String, Object> entry : (List<Map<String, Object>>)json.get("versionLists")){
+                String g = (String)entry.get("g");
+                String a = (String)entry.get("a");
+                List<String> versions = (List<String>)entry.get("v");
+                String ga = g + ":" + a;
+
+                releaseListData.put(ga, versions);
+            }
+        }
+
+        @Override
+        public List<String> getReleases(ArtifactIdent identifier) throws IOException {
+            if(releaseListData.isEmpty()){
+                buildMap();
+            }
+
+            if(releaseListData.containsKey(identifier.getGA())){
+                return releaseListData.get(identifier.getGA());
+            } else {
+                fail("No mock release data available for " + identifier.getGA());
+                return null;
+            }
+        }
+    };
+
     @Test
     void localPom() {
         List<LocalPomInformation> tests = new ArrayList<>();
-        PomResolver resolver = new PomResolver(true);
+        PomResolver resolver = new PomResolver(true, mockProvider);
 
         tests.add(new LocalPomInformation("src/test/resources/localPom.xml", resolver));
         tests.add(new LocalPomInformation(new File("src/test/resources/localPom.xml"), resolver));
@@ -45,7 +77,7 @@ class LocalPomInformationTest {
 
     @Test
     void localPomException() {
-        PomResolver resolver = new PomResolver(true);
+        PomResolver resolver = new PomResolver(true, mockProvider);
         assertThrows(RuntimeException.class, () -> new LocalPomInformation("src/test/resources/brokenlocalPom.xml", resolver));
         assertThrows(RuntimeException.class, () -> new LocalPomInformation(new File("src/test/resources/brokenlocalPom.xml"), resolver));
         assertThrows(RuntimeException.class, () -> new LocalPomInformation(new FileInputStream("src/test/resources/brokenlocalPom.xml"), resolver));
