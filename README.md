@@ -41,7 +41,7 @@ To use MARIN, extend the Maven Central Analysis class and implement the analyzeA
 
 ```java -jar executableName *INSERT CLI HERE* ```
 
-##Example Use Cases:
+## Example Use Cases:
 For these examples, these will perform the analysis on the first 1000 artifacts. The steps are the same for each one, except the implementation being used and the cli arguments added to execute the jar.
 1. Set up the implementation of the MavenCentralAnalysis class.
 2. Run the executable with the given cli
