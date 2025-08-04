@@ -19,6 +19,7 @@ public class CliInformation {
     private Path toOutputDirectory;
     private boolean multi;
     private int threads;
+    private int writeProcessedIndexes;
 
     public CliInformation() {
         skip = -1;
@@ -26,6 +27,7 @@ public class CliInformation {
         since = -1;
         until = -1;
         name = Paths.get("lastIndexProcessed");
+        writeProcessedIndexes = 1000;
         toCoordinates = null;
         toIndexPos = null;
         toOutputDirectory = null;
@@ -120,4 +122,8 @@ public class CliInformation {
     public void setToOutputDirectory(Path toOutputDirectory) {
         this.toOutputDirectory = toOutputDirectory;
     }
+
+    public int getWriteProcessedIndexes() { return writeProcessedIndexes; }
+
+    public void setWriteProcessedIndexes(int writeProcessedIndexes) {this.writeProcessedIndexes = writeProcessedIndexes;}
 }

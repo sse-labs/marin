@@ -319,6 +319,8 @@ public abstract class MavenCentralAnalysis {
                 }
             }
             processIndex(current);
+            if(indexIterator.getIndex() % setupInfo.getWriteProcessedIndexes() == 0)
+                writeLastProcessed(indexIterator.getIndex(), setupInfo.getName());
         }
 
         if(setupInfo.isMulti()) {
@@ -353,6 +355,8 @@ public abstract class MavenCentralAnalysis {
             }
             artifacts.add(current);
             processIndex(current);
+            if(indexIterator.getIndex() % setupInfo.getWriteProcessedIndexes() == 0)
+                writeLastProcessed(indexIterator.getIndex(), setupInfo.getName());
         }
 
         if(setupInfo.isMulti()) {
@@ -393,6 +397,8 @@ public abstract class MavenCentralAnalysis {
                 artifacts.add(current);
                 processIndex(current);
             }
+            if(indexIterator.getIndex() % setupInfo.getWriteProcessedIndexes() == 0)
+                writeLastProcessed(indexIterator.getIndex(), setupInfo.getName());
         }
 
         if(setupInfo.isMulti()) {
@@ -433,6 +439,8 @@ public abstract class MavenCentralAnalysis {
                 }
             }
             processIndexIdentifier(ident);
+            if(indexIterator.getIndex() % setupInfo.getWriteProcessedIndexes() == 0)
+                writeLastProcessed(indexIterator.getIndex(), setupInfo.getName());
         }
 
         if(setupInfo.isMulti()) {
@@ -465,6 +473,8 @@ public abstract class MavenCentralAnalysis {
                 }
             }
             processIndexIdentifier(ident);
+            if(indexIterator.getIndex() % setupInfo.getWriteProcessedIndexes() == 0)
+                writeLastProcessed(indexIterator.getIndex(), setupInfo.getName());
         }
 
         if(setupInfo.isMulti()) {
@@ -503,6 +513,8 @@ public abstract class MavenCentralAnalysis {
                 }
                 processIndexIdentifier(ident);
             }
+            if(indexIterator.getIndex() % setupInfo.getWriteProcessedIndexes() == 0)
+                writeLastProcessed(indexIterator.getIndex(), setupInfo.getName());
         }
 
         if(setupInfo.isMulti()) {

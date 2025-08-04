@@ -209,4 +209,8 @@ public class ArtifactIdent {
         return Objects.hash(groupID, artifactID, version);
     }
 
+    @Override
+    public String toString() {
+        return getCoordinates();
+    }
 }
