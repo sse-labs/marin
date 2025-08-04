@@ -37,14 +37,25 @@ The CLI includes the following:
   -  usage: ```--multi threads```
 
 ## Usage
-To use MARIN, extend the Maven Central Analysis class and implement the analyzeArtifact() method with the data that you are trying to extract. From there create an instance of your implementation in main, then build the project, and use the cli to fully customize the analysis.
+To use MARIN, you will need to implement two components:
+1. You need an implementation of the abstract class `MavenCentralAnalysis` that defines the `void analyzeArtifact(Artifact toAnalyze)` method. This is your actual analysis implementation that defines how a single artifact shall be processed.
+2. You need a runner class that passes command line arguments to your analysis implementation. Usually, this will look like this:
+```java
+public class AnalysisRunner {
 
+  public static void main(String[] args){
+    MavenCentralAnalysis myAnalysis = new MyAnalysisImplementation();
+    myAnalysis.runAnalysis(args);
+  }
+
+}
+```
+Once this is implemented, you can run your analysis using the following command. Any of the above-mentioned CLI arguments will work for your analysis implementation.
 ```java -jar executableName *INSERT CLI HERE* ```
 
 ## Example Use Cases:
-For these examples, these will perform the analysis on the first 1000 artifacts. The steps are the same for each one, except the implementation being used and the cli arguments added to execute the jar.
-1. Set up the implementation of the MavenCentralAnalysis class.
-2. Run the executable with the given cli
+In the following, there are some example implementations of `MavenCentralAnalaysis`. All of them can be used with the same `AnalysisRunner` implementation seen above, just replace `MyAnalysisImplementation` with the actual implementation name.
+You can run each example on the first 1000 Maven artifacts by invoking `java -jar executableName -st 0:1000` for the respective project executable JAR.
 
 ### Counting all classFiles from jar artifacts:
 ``` java
@@ -68,8 +79,6 @@ public class ExampleImplementation extends MavenCentralAnalysis {
     }
 }  
 ```
-
-```java -jar executableName --jar -st 0:1000```
 
 ### Find all Unique Licenses from pom artifacts
 ``` java
@@ -100,7 +109,6 @@ public class ExampleImplementation extends MavenCentralAnalysis {
     }
 } 
 ```
-```java -jar executableName --pom false -st 0:1000```
 
 ### Collect all artifacts that have javadocs
 ``` java
@@ -130,9 +138,6 @@ public class ExampleImplementation extends MavenCentralAnalysis {
     }
 }  
 ```
-
- ```java -jar executableName --index -st 0:1000```
-
 
 ## IndexWalker
 This part of the interface enables an easy traversal and collection of information from the Maven Central Index. This relies on the IndexIterator which traverses the index storing the values of artifacts with the same identifier in a single artifact objects as a list of packages (representation of each unique artifact under the same identifier).
