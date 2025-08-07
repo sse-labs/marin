@@ -21,7 +21,7 @@ public class Artifact {
      * The identifier object for the artifact.
      */
     public final ArtifactIdent ident;
-    public static final Logger log = LogManager.getLogger(Artifact.class);
+    private static final Logger log = LogManager.getLogger(Artifact.class);
 
     /**
      * A secondary identifier, for if its pom information has been moved on the maven central repository.
@@ -31,6 +31,12 @@ public class Artifact {
     private PomInformation pomInformation;
     private JarInformation jarInformation;
 
+    /**
+     * Creates a new artifact based on given IndexInformation. This artifact will have no POM or JAR information
+     * associated.
+     *
+     * @param indexInformation The IndexInformation for which to create the artifact
+     */
     public Artifact(IndexInformation indexInformation) {
         this.indexInformation = indexInformation;
         this.ident = indexInformation.getIdent();
@@ -38,6 +44,12 @@ public class Artifact {
         jarInformation = null;
     }
 
+    /**
+     * Creates a new artifact based on given PomInformation. This artifact will have no Index or JAR information
+     * associated.
+     *
+     * @param pomInformation The PomInformation for which to create the artifact
+     */
     public Artifact(PomInformation pomInformation) {
         this.pomInformation = pomInformation;
         this.ident = pomInformation.getIdent();
@@ -46,6 +58,12 @@ public class Artifact {
         jarInformation = null;
     }
 
+    /**
+     * Creates a new artifact based on the given JarInformation. This artifact will have no Index or POM information
+     * associated.
+     *
+     * @param jarInformation The JarInformation for which to create the artifact
+     */
     public Artifact(JarInformation jarInformation) {
         this.jarInformation = jarInformation;
         this.ident = jarInformation.getIdent();
@@ -54,51 +72,104 @@ public class Artifact {
     }
 
 
+    /**
+     * Returns the artifact identifier for this artifact.
+     *
+     * @return ArtifactIdent object for this artifact
+     */
     public ArtifactIdent getIdent() {
         return ident;
     }
 
+    /**
+     * Returns the artifact identifier of a potential relocation for this artifact. If this artifact has not been
+     * relocated, null is returned.
+     *
+     * @return ArtifactIdent identifying the relocation of this artifact, or null
+     */
     public ArtifactIdent getRelocation() {
         return relocation;
     }
 
+    /**
+     * Returns the IndexInformation of this artifact, or null if no IndexInformation is provided.
+     * @return IndexInformation of this artifact, or null
+     */
     public IndexInformation getIndexInformation() {
         return indexInformation;
     }
 
+    /**
+     * Checks whether this artifact provides IndexInformation.
+     * @return True if IndexInformation is available, false otherwise
+     */
     public boolean hasIndexInformation() {
         return indexInformation != null;
     }
 
+    /**
+     * Sets the IndexInformation for this artifact.
+     * @param indexInformation The IndexInformation to associated with this artifact
+     */
     public void setIndexInformation(IndexInformation indexInformation) {
         this.indexInformation = indexInformation;
     }
 
+    /**
+     * Returns the PomInformation of this artifact, or null if no PomInformation is provided.
+     * @return PomInformation of this artifact, or null
+     */
     public PomInformation getPomInformation() {
         return pomInformation;
     }
 
+    /**
+     * Checks whether this artifact provides PomInformation.
+     * @return True if PomInformation is available, false otherwise
+     */
     public boolean hasPomInformation() {
         return pomInformation != null;
     }
 
+    /**
+     * Sets the PomInformation for this artifact.
+     * @param pomInformation The PomInformation to associated with this artifact
+     */
     public void setPomInformation(PomInformation pomInformation) {
         this.pomInformation = pomInformation;
     }
 
+    /**
+     * Returns the JarInformation of this artifact, or null if no JarInformation is provided.
+     * @return JarInformation of this artifact, or null
+     */
     public JarInformation getJarInformation() {
         return jarInformation;
     }
 
+    /**
+     * Checks whether this artifact provides JarInformation.
+     * @return True if JarInformation is available, false otherwise
+     */
     public boolean hasJarInformation(){
         return jarInformation != null;
     }
 
+    /**
+     * Sets the JarInformation for this artifact.
+     * @param jarInformation The JarInformation to associated with this artifact
+     */
     public void setJarInformation(JarInformation jarInformation) {
         this.jarInformation = jarInformation;
     }
 
 
+    /**
+     * Builds the Type hierarchy for this artifact and returns a map of type FQNs to their hierarchy node. Only works
+     * if JarInformation is available.
+     *
+     * @return Map of Type FQNs to their hierarchy node
+     */
     public Map<String, ClassFileNode> buildTypeStructure() {
         Map<String, ClassFileNode> roots = new HashMap<>();
         roots.put("java/lang/Object", new NotFoundNode(new ObjType(0, "java/lang/Object", "java/lang")));
