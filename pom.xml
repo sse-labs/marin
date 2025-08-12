@@ -24,6 +24,7 @@
     <developers>
         <developer>
             <name>Secure Software Engineering Labs</name>
+            <email>software@sse-labs.eu</email>
             <organization>Secure Software Engineering Labs</organization>
             <organizationUrl>https://github.com/sse-labs</organizationUrl>
         </developer>
