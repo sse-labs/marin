@@ -1,5 +1,14 @@
  # MARIN (MAven Research INterface)
-An interface focused on creating an accessible and scalable way to do research on artifacts on the Maven Central repository. MARIN contains an overarching implementation of the different modules in the interface, allowing for quick and repeated analysis runs to be performed. 
+An interface focused on creating an accessible and scalable way to do research on artifacts on the Maven Central repository. MARIN contains an overarching implementation of the different modules in the interface, allowing for quick and repeated analysis runs to be performed.
+
+Add the following dependency to your `pom.xml` to add MARIN to your project:
+```
+<dependency>
+    <groupId>eu.sse-labs</groupId>
+    <artifactId>marin</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
 
 ## Required Java Version
 The Maven Research Interface requires Java 11.
