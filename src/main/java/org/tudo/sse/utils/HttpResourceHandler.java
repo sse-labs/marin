@@ -11,13 +11,19 @@ import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
 /**
- * This class handles opening an inputStream for reading from the Maven Central Index
+ * An implementation of the ResourceHandler class required for processing the Maven Central Index. This specific class
+ * uses HTTP resources to access the index.
  */
 public class HttpResourceHandler implements ResourceHandler {
+
     private final URI root;
 
     private final int BUFFER_SIZE = 10 * 1024 * 1024; // Buffer 10MB
 
+    /**
+     * Creates a new HttpResourceHandler for the given root URI
+     * @param root The root URI, typically the Maven Central Index URI
+     */
     public HttpResourceHandler(URI root) {
         this.root = root;
     }
@@ -27,8 +33,17 @@ public class HttpResourceHandler implements ResourceHandler {
         return new HttpResource(name);
     }
 
+    /**
+     * HTTP based implementation of the Resource class required for processing the Maven Central Index.
+     */
     public class HttpResource implements Resource {
+
         private final String name;
+
+        /**
+         * Creates a new resource with the given name.
+         * @param name Resource name
+         */
         public HttpResource(String name) {
             this.name = name;
         }
