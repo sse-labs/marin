@@ -15,6 +15,12 @@ public class IndexInformation extends ArtifactInformation {
     private final long lastModified;
     private final List<Package> packages;
 
+    /**
+     * Creates a new IndexInformation object for the given artifact identifier and package information.
+     * @param ident The artifact identifier for which to create an IndexInformation
+     * @param aPackage A package information object taken from the Maven Central Index. This must be associated with the
+     *                 GAV triple represented by the given ArtifactIdent object.
+     */
     public IndexInformation(ArtifactIdent ident, Package aPackage) {
         super(ident);
         packages = new ArrayList<>();

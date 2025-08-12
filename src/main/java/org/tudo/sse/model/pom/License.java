@@ -9,6 +9,11 @@ public class License {
     private final String name;
     private final String url;
 
+    /**
+     * Creates a new License object with the given name and URL.
+     * @param name The license name
+     * @param url The license's URL
+     */
     public License(String name, String url) {
         this.name = name;
         this.url = url;

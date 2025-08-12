@@ -172,7 +172,7 @@ public class Artifact {
      */
     public Map<String, ClassFileNode> buildTypeStructure() {
         Map<String, ClassFileNode> roots = new HashMap<>();
-        roots.put("java/lang/Object", new NotFoundNode(new ObjType(0, "java/lang/Object", "java/lang")));
+        roots.put("java/lang/Object", new VirtualClassFileNode(new ObjType(0, "java/lang/Object", "java/lang")));
         if(jarInformation != null) {
             Map<String, List<ClassFile>> packages = jarInformation.getPackages();
             Map<String, Artifact> depArts = new HashMap<>();
@@ -199,7 +199,7 @@ public class Artifact {
     }
 
     private ClassFileNode resolveNode(Map<String, ClassFileNode> root, ClassFile clase, Map<String, List<ClassFile>> packages, Map<String, Artifact> depArts) {
-            ClassFileNode node = new FoundInfoNode(clase.getAccessFlags(), clase.getThistype(), clase.getVersion());
+            ClassFileNode node = new DefinedClassFileNode(clase.getAccessFlags(), clase.getThistype(), clase.getVersion());
 
             if(clase.getSuperType() != null) {
                resolveSuperClass(root, node, clase, packages, depArts);
@@ -251,9 +251,9 @@ public class Artifact {
 
             //add a new root to the map
             if(!found) {
-                node.setSuperClass(new NotFoundNode(clase.getSuperType()));
+                node.setSuperClass(new VirtualClassFileNode(clase.getSuperType()));
                 node.getSuperClass().addChild(node);
-                roots.put(node.getSuperClass().getThistype().getFqn(), node.getSuperClass());
+                roots.put(node.getSuperClass().getThisType().getFqn(), node.getSuperClass());
             }
         }
     }
@@ -268,7 +268,7 @@ public class Artifact {
                     if(cls.getThistype().getFqn().equals(itfe.getFqn())) {
                         ClassFileNode resolved = resolveNode(roots, cls, packages, depArts);
                         resolved.addChild(node);
-                        ((FoundInfoNode) node).addInterfaceNode(resolved);
+                        ((DefinedClassFileNode) node).addInterfaceNode(resolved);
                         break;
                     }
                 }
@@ -282,7 +282,7 @@ public class Artifact {
                                 found = true;
                                 ClassFileNode resolved = resolveNode(roots, depClass, entry.getValue().getJarInformation().getPackages(), depArts);
                                 resolved.addChild(node);
-                                ((FoundInfoNode) node).addInterfaceNode(resolved);
+                                ((DefinedClassFileNode) node).addInterfaceNode(resolved);
                                 break;
                             }
                         }
@@ -293,8 +293,8 @@ public class Artifact {
                 }
 
                 if(!found) {
-                    ClassFileNode notFound = new NotFoundNode(itfe);
-                    ((FoundInfoNode) node).addInterfaceNode(notFound);
+                    ClassFileNode notFound = new VirtualClassFileNode(itfe);
+                    ((DefinedClassFileNode) node).addInterfaceNode(notFound);
                     notFound.addChild(node);
                 }
             }

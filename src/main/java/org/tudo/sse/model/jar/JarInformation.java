@@ -18,6 +18,10 @@ public class JarInformation extends ArtifactInformation {
     private long numPackages;
     private Map<String, List<ClassFile>> packages;
 
+    /**
+     * Creates an empty JarInformation object for the given artifact identifier.
+     * @param ident The identifier for which to create the JarInformation
+     */
     public JarInformation(ArtifactIdent ident) {
         super(ident);
     }

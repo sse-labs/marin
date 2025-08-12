@@ -63,9 +63,9 @@ class LocalPomInformationTest {
         List<LocalPomInformation> tests = new ArrayList<>();
         PomResolver resolver = new PomResolver(true, mockProvider);
 
-        tests.add(new LocalPomInformation("src/test/resources/localPom.xml", resolver));
-        tests.add(new LocalPomInformation(new File("src/test/resources/localPom.xml"), resolver));
         try {
+            tests.add(new LocalPomInformation("src/test/resources/localPom.xml", resolver));
+            tests.add(new LocalPomInformation(new File("src/test/resources/localPom.xml"), resolver));
             tests.add(new LocalPomInformation(new FileInputStream("src/test/resources/localPom.xml"), resolver));
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);

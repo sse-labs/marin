@@ -57,7 +57,9 @@ public class ArtifactFactory {
 
     /**
      * Searches for an artifact with the matching identifier, returning it if found.
+     * @param ident The artifact identifier for which to look up an artifact definition
      *
+     * @return The artifact object belonging to this identifier, or null if no such object exists
      */
     public static Artifact getArtifact(ArtifactIdent ident) {
         if(artifacts.containsKey(ident)) {
