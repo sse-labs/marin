@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.tudo.sse.model.Artifact;
 import org.tudo.sse.model.ArtifactIdent;
 import org.tudo.sse.model.index.IndexInformation;
-import org.tudo.sse.multithreading.IdentPlusMCA;
+import org.tudo.sse.multithreading.ProcessIdentifierMessage;
 import org.tudo.sse.multithreading.IndexProcessingMessage;
 import org.tudo.sse.resolution.ResolverFactory;
 import org.tudo.sse.utils.IndexIterator;
@@ -290,7 +290,7 @@ public abstract class MavenCentralAnalysis {
 
     public void processIndex(Artifact current) {
         if(setupInfo.isMulti()) {
-            queueActorRef.tell(new IdentPlusMCA(current.getIdent(), this), ActorRef.noSender());
+            queueActorRef.tell(new ProcessIdentifierMessage(current.getIdent(), this), ActorRef.noSender());
         } else {
             callResolver(current.getIdent());
             analyzeArtifact(current);
@@ -411,7 +411,7 @@ public abstract class MavenCentralAnalysis {
 
     public void processIndexIdentifier(ArtifactIdent ident) {
         if(setupInfo.isMulti()){
-            queueActorRef.tell(new IdentPlusMCA(ident, this), ActorRef.noSender());
+            queueActorRef.tell(new ProcessIdentifierMessage(ident, this), ActorRef.noSender());
         } else {
             callResolver(ident);
             if(ArtifactFactory.getArtifact(ident) != null) {

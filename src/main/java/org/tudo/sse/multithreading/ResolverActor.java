@@ -22,7 +22,7 @@ public class ResolverActor extends AbstractActor {
     @Override
     public Receive createReceive() {
         return ReceiveBuilder.create()
-                .match(IdentPlusMCA.class, message -> {
+                .match(ProcessIdentifierMessage.class, message -> {
                     message.getInstance().callResolver(message.getIdentifier());
                     message.getInstance().analyzeArtifact(ArtifactFactory.getArtifact(message.getIdentifier()));
                     getSender().tell("Finished", getSelf());

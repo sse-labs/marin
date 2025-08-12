@@ -9,7 +9,6 @@ import org.opalj.br.ObjectType;
 import org.opalj.br.analyses.Project$;
 import org.opalj.br.package$;
 import org.opalj.br.reader.Java16LibraryFramework;
-import org.opalj.bytecode.BytecodeProcessingFailedException;
 import org.opalj.log.GlobalLogContext$;
 import org.tudo.sse.ArtifactFactory;
 import org.tudo.sse.model.Artifact;
@@ -38,22 +37,35 @@ import scala.collection.JavaConverters;
  * @see JarInformation
  */
 public class JarResolver {
+
     private final Path pathToDirectory;
     private boolean output;
     private final Java16LibraryFramework cfReader = Project$.MODULE$.JavaClassFileReader(GlobalLogContext$.MODULE$, package$.MODULE$.BaseConfig());
     private static final MavenCentralRepository MavenRepo = MavenCentralRepository.getInstance();
     private static final Logger log = LogManager.getLogger(JarResolver.class);
 
+    /**
+     * Creates a new empty JAR resolver instance
+     */
     public JarResolver() {
         output = false;
         pathToDirectory = null;
     }
 
+    /**
+     * Creates a new empty JAR resolver instance with the given configuration attributes.
+     * @param output Whether this resolver should persist its processed artifacts
+     * @param pathToDirectory Output directory to persist artifacts in
+     */
     public JarResolver(boolean output, Path pathToDirectory) {
         this.output = output;
         this.pathToDirectory = pathToDirectory;
     }
 
+    /**
+     * Sets whether this instance shall output its processed artifacts
+     * @param output True if this resolver instance should persits its processed artifacts
+     */
     public void setOutput(boolean output) {
         this.output = output;
     }
@@ -208,7 +220,7 @@ public class JarResolver {
         return new org.tudo.sse.model.jar.ClassFile(classFile.accessFlags(), thisType, classFile.version(), superType, interfaces);
     }
 
-    public List<Tuple2<ClassFile, URL>> readClassesFromJarStream(InputStream jarStream, URL source) throws JarResolutionException {
+    private List<Tuple2<ClassFile, URL>> readClassesFromJarStream(InputStream jarStream, URL source) throws JarResolutionException {
         var entries = new ArrayList<Tuple2<ClassFile, URL>>();
 
         try (JarInputStream jarInputStream = new JarInputStream(jarStream)){

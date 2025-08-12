@@ -33,6 +33,7 @@ import java.util.function.Function;
  * These include the raw features, parent and imports, dependencies, all transitive dependencies, and effective transitive dependencies.
  */
 public class PomResolver {
+
     private final Path pathToDirectory;
     private final boolean output;
     private static final MavenCentralRepository MavenRepo = MavenCentralRepository.getInstance();
@@ -44,22 +45,40 @@ public class PomResolver {
     private final IReleaseListProvider releaseListProvider;
 
     /**
-     * In the constructor for this class, a boolean is passed to determine if transitive dependencies should be resolved when the resolution is run.
-     *
-     * @param resolveTransitives determines if transitive dependencies are to be resolved
+     * Creates a new PomResolver instance. This instance will not output processed POM files and will use the default
+     * release list provider instance.
+     * @param resolveTransitives Whether this instance shall process transitive POM files (i.e. imports, dependencies)
      */
     public PomResolver(boolean resolveTransitives) {
         this(resolveTransitives, DefaultMavenReleaseListProvider.getInstance());
     }
 
+    /**
+     * Creates a new PomResolver instance. This instance will not output processed POM files.
+     * @param resolveTransitives Whether this instance shall process transitive POM files (i.e. imports, dependencies)
+     * @param provider The release list provider instance to use for resolution
+     */
     public PomResolver(boolean resolveTransitives, IReleaseListProvider provider) {
         this(false, null, resolveTransitives, provider);
     }
 
+    /**
+     * Creates a new PomResolver instance. This instance will use the default release list provider instance.
+     * @param output Whether to output processed POM files
+     * @param pathToDirectory Path to output processed POM files to
+     * @param resolveTransitives Whether this instance shall process transitive POM files (i.e. imports, dependencies)
+     */
     public PomResolver(boolean output, Path pathToDirectory, boolean resolveTransitives){
         this(output, pathToDirectory, resolveTransitives, DefaultMavenReleaseListProvider.getInstance());
     }
 
+    /**
+     * Creates a new PomResolver instance.
+     * @param output Whether to output processed POM files
+     * @param pathToDirectory Path to output processed POM files to
+     * @param resolveTransitives Whether this instance shall process transitive POM files (i.e. imports, dependencies)
+     * @param provider The release list provider instance to use for resolution
+     */
     public PomResolver(boolean output, Path pathToDirectory, boolean resolveTransitives, IReleaseListProvider provider) {
         this.output = output;
         this.pathToDirectory = pathToDirectory;

@@ -5,6 +5,10 @@ import org.tudo.sse.model.ArtifactIdent;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Interface defining functionality to obtain a list of Maven Central releases (i.e. version numbers) for a given
+ * library (i.e. GA-Tuple).
+ */
 public interface IReleaseListProvider {
 
     /**

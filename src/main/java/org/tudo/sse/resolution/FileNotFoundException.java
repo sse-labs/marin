@@ -5,10 +5,15 @@ import java.net.URL;
 /**
  * Handles when the resource being retrieved cannot be found.
  */
-public class FileNotFoundException  extends Exception {
+public class FileNotFoundException extends Exception {
+
     private final URL resource;
 
-
+    /**
+     * Creates a new FileNotFoundException for the given URL.
+     *
+     * @param resource The URL for which the corresponding file could not be found.
+     */
     public FileNotFoundException(URL resource) {
         this.resource = resource;
     }

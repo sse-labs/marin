@@ -6,6 +6,10 @@ package org.tudo.sse.resolution;
 public class JarResolutionException extends Exception {
     private final String message;
 
+    /**
+     * Creates a new JarResolutionException with the given error message.
+     * @param message A message describing the error during JAR resolution
+     */
     public JarResolutionException(String message) {
         this.message = message;
     }
