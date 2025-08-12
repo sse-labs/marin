@@ -13,6 +13,9 @@ import org.tudo.sse.utils.MavenCentralRepository;
  */
 public class ArtifactIdent {
 
+    /**
+     * The Maven Central repository base URL
+     */
     public static final String CENTRAL_REPOSITORY_URL = "https://repo1.maven.org/maven2/";
     /**
      * The group section of the identifier.

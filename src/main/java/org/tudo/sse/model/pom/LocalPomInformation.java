@@ -153,6 +153,7 @@ public class LocalPomInformation extends PomInformation {
     }
 
     /**
+     * Resolves all transitive pom references, i.e. parent POMs and import scoped POM files.
      * @see PomResolver
      * @param resolver the resolver used to resolve the parents and imports of the local pom
      */
@@ -176,6 +177,7 @@ public class LocalPomInformation extends PomInformation {
     }
 
     /**
+     * Resolves all dependencies of the current POM.
      * @see PomResolver
      * @param resolver the pomResolver used to drive this method
      */

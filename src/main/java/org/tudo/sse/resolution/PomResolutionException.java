@@ -7,7 +7,14 @@ import org.tudo.sse.model.ArtifactIdent;
  */
 public class PomResolutionException extends Exception {
 
+    /**
+     * Detailed exception message.
+     */
     private final String message;
+
+    /**
+     * The artifact identifier that caused the exception.
+     */
     private final ArtifactIdent artifactIdentifier;
 
     /**

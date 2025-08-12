@@ -4,6 +4,10 @@ package org.tudo.sse.resolution;
  * This class handles errors that may arise during jar resolution, giving more informative error messages.
  */
 public class JarResolutionException extends Exception {
+
+    /**
+     * Detailed exception message.
+     */
     private final String message;
 
     /**

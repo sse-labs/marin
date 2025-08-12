@@ -12,6 +12,11 @@ import org.tudo.sse.ArtifactFactory;
 public class ResolverActor extends AbstractActor {
 
     /**
+     * Creates a new ResolverActor
+     */
+    public ResolverActor() {}
+
+    /**
      * Sets up the inherited properties for the actor.
      * @return properties created for the ResolverActor class
      */

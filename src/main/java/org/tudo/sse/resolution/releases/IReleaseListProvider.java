@@ -17,6 +17,7 @@ public interface IReleaseListProvider {
      *
      * @param identifier Identifier to obtain the release list for (GA-Tuple)
      * @return List of version numbers as ordered by the underlying source
+     * @throws IOException If a connection error occurs
      */
     List<String> getReleases(ArtifactIdent identifier) throws IOException;
 

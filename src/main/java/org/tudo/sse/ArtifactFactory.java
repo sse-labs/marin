@@ -11,7 +11,9 @@ import org.tudo.sse.model.pom.PomInformation;
  * The ArtifactFactory handles the creation and storage of artifacts resolved.
  * Using a map double resolutions are avoided and faster retrievals are possible.
  */
-public class ArtifactFactory {
+public final class ArtifactFactory {
+
+    private ArtifactFactory() {}
 
     /**
      * A map that stores all artifacts collected during index, pom, and jar resolution.

@@ -7,6 +7,9 @@ import java.net.URL;
  */
 public class FileNotFoundException extends Exception {
 
+    /**
+     * The URL of the file that could not be found.
+     */
     private final URL resource;
 
     /**

@@ -184,6 +184,9 @@ public class PomResolver {
      * @param identifier id for the pom artifact to resolve
      * @return an artifact with resolved PomInformation
      * @see PomInformation
+     * @throws FileNotFoundException When the POM file does not exist for the given artifact
+     * @throws IOException If connection errors occur
+     * @throws PomResolutionException If the POM resolution process fails due to invalid file contents
      */
     public Artifact resolveArtifact(ArtifactIdent identifier) throws FileNotFoundException, IOException, PomResolutionException {
         Map<ArtifactIdent, Artifact> alrEncountered = new HashMap<>();
@@ -216,6 +219,7 @@ public class PomResolver {
      * @param identifier the identifier of the pom artifact being processed
      * @return an object containing all the features of the pom file
      * @see RawPomFeatures
+     * @throws PomResolutionException If the POM resolution process fails due to invalid file contents
      */
     public RawPomFeatures processRawPomFeatures(InputStream input, ArtifactIdent identifier) throws PomResolutionException {
         MavenXpp3Reader reader = new MavenXpp3Reader();
@@ -338,6 +342,9 @@ public class PomResolver {
      * This method handles resolving an artifact via raw Pom information and parent and dependency resolution
      * @param identifier used to retrieve the pom artifact from the maven central repository
      * @return an artifact with resolved rawPomFeatures, parent, and import information
+     * @throws PomResolutionException If the POM resolution process fails due to invalid file contents
+     * @throws FileNotFoundException When the POM file does not exist for the given artifact
+     * @throws IOException If connection errors occur
      */
     public Artifact processArtifact(ArtifactIdent identifier) throws PomResolutionException, FileNotFoundException, IOException {
         if(ArtifactFactory.getArtifact(identifier) != null && Objects.requireNonNull(ArtifactFactory.getArtifact(identifier)).getPomInformation() != null) {
@@ -390,7 +397,7 @@ public class PomResolver {
     }
 
     /**
-     *
+     * Resolves import scope dependencies and returns their corresponding artifacts.
      * @param managedDependencies list of managed dependencies from the rawPomFeatures, to be looked through for an import
      * @param info the current information object
      * @return a list of imported artifacts

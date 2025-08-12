@@ -12,7 +12,9 @@ import org.tudo.sse.resolution.FileNotFoundException;
  * This class handles opening connections for pom and jar resolution.
  * This is done through the implementation of HttpURLConnection.
  */
-public class ResourceConnections {
+public final class ResourceConnections {
+
+    private ResourceConnections() {}
 
     /**
      * This method attempts to open a connection to a given url, handling fileNotFound and redirect response codes.
