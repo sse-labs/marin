@@ -24,6 +24,11 @@ public class RawPomFeatures {
     private ArtifactIdent relocation;
 
     /**
+     * Creates an empty instance of RawPomFeatures.
+     */
+    public RawPomFeatures(){}
+
+    /**
      * Retrieves the artifact identifier of the parent identifier
      * @return artifactIdent representing the parent artifact
      */

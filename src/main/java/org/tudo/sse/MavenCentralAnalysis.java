@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.tudo.sse.model.Artifact;
 import org.tudo.sse.model.ArtifactIdent;
 import org.tudo.sse.model.index.IndexInformation;
-import org.tudo.sse.multithreading.IdentPlusMCA;
+import org.tudo.sse.multithreading.ProcessIdentifierMessage;
 import org.tudo.sse.multithreading.IndexProcessingMessage;
 import org.tudo.sse.resolution.ResolverFactory;
 import org.tudo.sse.utils.IndexIterator;
@@ -26,20 +26,39 @@ import java.util.Map;
 /**
  * The MavenCentralAnalysis enables analysis of artifacts on the maven central repository for jobs of any size.
  * Takes in cli to be configured to the specific job desired.
- *
  */
 public abstract class MavenCentralAnalysis {
+
     private final CliInformation setupInfo;
     private ActorRef queueActorRef;
     private ResolverFactory resolverFactory;
+
+    /**
+     * Defines whether this analysis requires artifacts to have index information annotated.
+     */
     protected boolean resolveIndex;
+
+    /**
+     * Defines whether this analysis requires artifacts to have pom information annotated.
+     */
     protected boolean resolvePom;
+
+    /**
+     * Defines whether this analysis requires artifacts to have resolved transitive pom information.
+     */
     protected boolean processTransitives;
+
+    /**
+     * Defines whether this analysis requires artifacts to have jar information annotated.
+     */
     protected boolean resolveJar;
 
 
-    public static final Logger log = LogManager.getLogger(MavenCentralAnalysis.class);
+    private static final Logger log = LogManager.getLogger(MavenCentralAnalysis.class);
 
+    /**
+     * Creates a new Maven Central Analysis with default configuration options.
+     */
     public MavenCentralAnalysis()  {
         setupInfo = new CliInformation();
         resolveIndex = false;
@@ -49,6 +68,11 @@ public abstract class MavenCentralAnalysis {
     }
 
 
+    /**
+     * Main analysis implementation. Defines how a single artifact shall be analyzed. Artifacts will have information
+     * annotated corresponding to the protected attributes' values.
+     * @param current The artifact to analyze
+     */
     public abstract void analyzeArtifact(Artifact current);
 
     /**
@@ -113,6 +137,10 @@ public abstract class MavenCentralAnalysis {
         }
     }
 
+    /**
+     * Returns the CLI configuration for this analysis.
+     * @return CLI information for this analysis
+     */
     public CliInformation getSetupInfo() {
         return setupInfo;
     }
@@ -288,9 +316,9 @@ public abstract class MavenCentralAnalysis {
         writeLastProcessed(indexIterator.getIndex(), setupInfo.getName());
     }
 
-    public void processIndex(Artifact current) {
+    private void processIndex(Artifact current) {
         if(setupInfo.isMulti()) {
-            queueActorRef.tell(new IdentPlusMCA(current.getIdent(), this), ActorRef.noSender());
+            queueActorRef.tell(new ProcessIdentifierMessage(current.getIdent(), this), ActorRef.noSender());
         } else {
             callResolver(current.getIdent());
             analyzeArtifact(current);
@@ -409,9 +437,9 @@ public abstract class MavenCentralAnalysis {
         return artifacts;
     }
 
-    public void processIndexIdentifier(ArtifactIdent ident) {
+    private void processIndexIdentifier(ArtifactIdent ident) {
         if(setupInfo.isMulti()){
-            queueActorRef.tell(new IdentPlusMCA(ident, this), ActorRef.noSender());
+            queueActorRef.tell(new ProcessIdentifierMessage(ident, this), ActorRef.noSender());
         } else {
             callResolver(ident);
             if(ArtifactFactory.getArtifact(ident) != null) {
@@ -622,6 +650,10 @@ public abstract class MavenCentralAnalysis {
         }
     }
 
+    /**
+     * Invokes all resolvers as defined by the analysis configuration to enrich the given artifact identifier.
+     * @param identifier Artifact identifier to enrich
+     */
     public void callResolver(ArtifactIdent identifier) {
         if(resolvePom && resolveJar) {
             resolverFactory.runBoth(identifier);

@@ -12,6 +12,11 @@ import org.tudo.sse.ArtifactFactory;
 public class ResolverActor extends AbstractActor {
 
     /**
+     * Creates a new ResolverActor
+     */
+    public ResolverActor() {}
+
+    /**
      * Sets up the inherited properties for the actor.
      * @return properties created for the ResolverActor class
      */
@@ -22,7 +27,7 @@ public class ResolverActor extends AbstractActor {
     @Override
     public Receive createReceive() {
         return ReceiveBuilder.create()
-                .match(IdentPlusMCA.class, message -> {
+                .match(ProcessIdentifierMessage.class, message -> {
                     message.getInstance().callResolver(message.getIdentifier());
                     message.getInstance().analyzeArtifact(ArtifactFactory.getArtifact(message.getIdentifier()));
                     getSender().tell("Finished", getSelf());

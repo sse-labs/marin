@@ -34,6 +34,11 @@ public class IndexIterator implements Iterator<IndexInformation> {
     private static final Logger log = LogManager.getLogger(IndexIterator.class);
 
 
+    /**
+     * Create a new Index Iterator with the given Maven Central base URI
+     * @param base The Maven Central base URI
+     * @throws IOException If accessing the URI fails, an IOException will be thrown
+     */
     public IndexIterator(URI base) throws IOException {
         baseUri = base;
         ir = new IndexReader(null, new HttpResourceHandler(base.resolve(".index/")));
@@ -43,6 +48,12 @@ public class IndexIterator implements Iterator<IndexInformation> {
         nextArtifact = null;
     }
 
+    /**
+     * Create a new Index Iterator with the given Maven Central base URI and starting position.
+     * @param base The Maven Central base URI
+     * @param startingIndex The index position at which to start iterating
+     * @throws IOException If accessing the URI fails, an IOException will be thrown
+     */
     public IndexIterator(URI base, long startingIndex) throws IOException {
         this(base);
 
@@ -52,6 +63,10 @@ public class IndexIterator implements Iterator<IndexInformation> {
         }
     }
 
+    /**
+     * Closes this IndexIterator instance
+     * @throws IOException If closing fails, an IOException may be thrown
+     */
     public void closeReader() throws IOException {
         ir.close();
     }
@@ -145,6 +160,10 @@ public class IndexIterator implements Iterator<IndexInformation> {
         return null;
     }
 
+    /**
+     * Retrieves the current index position
+     * @return Index position
+     */
     public long getIndex() {
         if(currentArtifact != null) {
             return currentArtifact.getIndex();

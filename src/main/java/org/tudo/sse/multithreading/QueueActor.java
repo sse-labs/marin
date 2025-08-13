@@ -10,20 +10,25 @@ import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * This class is a queue in handling resolution jobs to send to different threads.
+ * This class represents the processing queue that resolves jobs and sends them to different threads.
  * The size of the jobs and threads are determined by the configuration set in CliInformation.
  * @see org.tudo.sse.CliInformation
  */
-public class QueueActor extends AbstractActor{
+public class QueueActor extends AbstractActor {
 
     private final int numResolverActors;
     private final AtomicInteger curNumResolvers;
-    private final Queue<IdentPlusMCA> jobQueue;
+    private final Queue<ProcessIdentifierMessage> jobQueue;
     private boolean indexFinished = false;
     private final ActorSystem system;
 
-    public static final Logger log = LogManager.getLogger(QueueActor.class);
+    private static final Logger log = LogManager.getLogger(QueueActor.class);
 
+    /**
+     * Creates a new processing queue with the given number of actors and the given actor system.
+     * @param numResolverActors Number of ResolverActor instances that will process jobs
+     * @param system The underlying ActorSystem
+     */
     public QueueActor(int numResolverActors, ActorSystem system) {
         this.numResolverActors = numResolverActors;
         this.system = system;
@@ -31,6 +36,12 @@ public class QueueActor extends AbstractActor{
         this.jobQueue = new LinkedList<>();
     }
 
+    /**
+     * Creates the properties needed to initialize an actor instance of this queue
+     * @param numResolverActors The number of ResolverActor instances that shall be used to process jobs
+     * @param system The underlying ActorSystem
+     * @return The AKKA actor properties
+     */
     public static Props props(int numResolverActors, ActorSystem system) {
         return Props.create(QueueActor.class, () -> new QueueActor(numResolverActors, system));
     }
@@ -38,7 +49,7 @@ public class QueueActor extends AbstractActor{
     @Override
     public Receive createReceive() {
         return ReceiveBuilder.create()
-                .match(IdentPlusMCA.class, message -> {
+                .match(ProcessIdentifierMessage.class, message -> {
                     synchronized (curNumResolvers){
                         if(curNumResolvers.get() < numResolverActors) {
                             ActorRef processor = getContext().actorOf(ResolverActor.props());

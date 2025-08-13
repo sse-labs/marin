@@ -34,6 +34,11 @@ public class Dependency {
         this.exclusions = exclusions;
     }
 
+    /**
+     * Copy constructor: Creates a deep copy of the given dependency.
+     *
+     * @param toCopy Dependency object to copy
+     */
     public Dependency(Dependency toCopy) {
         this.ident = new ArtifactIdent(toCopy.ident);
         this.scope = toCopy.scope;

@@ -19,32 +19,37 @@ import java.util.Map;
  * This class can be used to perform pom resolution on a local pom file.
  */
 public class LocalPomInformation extends PomInformation {
-    private Path toPom;
 
-    public LocalPomInformation(String path, PomResolver resolver) {
-        super();
-        toPom = Paths.get(path);
-        try {
-            resolveLocalFile(resolver, fileToInputStream(toPom.toFile()));
-            resolveParentAndImport(resolver);
-            resolveDependencies(resolver);
-        } catch (IOException | XmlPullParserException e) {
-            throw new RuntimeException(e);
-        }
+    private Path pomPath;
+
+    /**
+     * Creates a new LocalPomInformation object for a POM file located at the given path.
+     *
+     * @param path The Path object identifying a pom file
+     * @param resolver The PomResolver to use for resolution
+     * @throws FileNotFoundException If the given Path does not exist
+     */
+    public LocalPomInformation(String path, PomResolver resolver) throws FileNotFoundException {
+        this(new FileInputStream(path), resolver);
+        this.pomPath = Paths.get(path);
     }
 
-    public LocalPomInformation(File localPom, PomResolver resolver) {
-        super();
-        toPom = localPom.toPath();
-        try {
-            resolveLocalFile(resolver, fileToInputStream(localPom));
-            resolveParentAndImport(resolver);
-            resolveDependencies(resolver);
-        } catch (IOException | XmlPullParserException e) {
-            throw new RuntimeException(e);
-        }
+    /**
+     * Creates a new LocalPomInformation object for a given POM file
+     * @param localPom The file object identifying the local POM file
+     * @param resolver The PomResolver to use for resolution
+     * @throws FileNotFoundException If the given File does not exist
+     */
+    public LocalPomInformation(File localPom, PomResolver resolver) throws FileNotFoundException{
+        this(new FileInputStream(localPom), resolver);
+        this.pomPath = localPom.toPath();
     }
 
+    /**
+     * Creates a new LocalPomInformation object for a given InputStream (representing a text file).
+     * @param localPom An InputStream containing the POM file contents
+     * @param resolver The PomResolver to use for resolution
+     */
     public LocalPomInformation(InputStream localPom, PomResolver resolver) {
         super();
         try {
@@ -57,13 +62,13 @@ public class LocalPomInformation extends PomInformation {
     }
 
     /**
-     * Opens an inputStream for the local pom file provided
-     * @param localPom local file to be opened
-     * @return inputstream of the local pom provided
-     * @throws FileNotFoundException handles when the file to be open doesn't exist
+     * Returns the path to this local pom File, if available. If this Information object was instantiated from an
+     * InputStream, i.e. no path information is available, null will be returned.
+     *
+     * @return The Path to this local POM file, if available - else null.
      */
-    public InputStream fileToInputStream(File localPom) throws FileNotFoundException {
-        return new FileInputStream(localPom);
+    public Path getPomPath(){
+        return pomPath;
     }
 
     /**
@@ -148,6 +153,7 @@ public class LocalPomInformation extends PomInformation {
     }
 
     /**
+     * Resolves all transitive pom references, i.e. parent POMs and import scoped POM files.
      * @see PomResolver
      * @param resolver the resolver used to resolve the parents and imports of the local pom
      */
@@ -171,6 +177,7 @@ public class LocalPomInformation extends PomInformation {
     }
 
     /**
+     * Resolves all dependencies of the current POM.
      * @see PomResolver
      * @param resolver the pomResolver used to drive this method
      */

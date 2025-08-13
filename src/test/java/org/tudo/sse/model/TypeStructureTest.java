@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
 import org.tudo.sse.ArtifactFactory;
 import org.tudo.sse.model.jar.ClassFileNode;
-import org.tudo.sse.model.jar.FoundInfoNode;
+import org.tudo.sse.model.jar.DefinedClassFileNode;
 import org.tudo.sse.resolution.*;
 
 import java.io.IOException;
@@ -71,7 +71,7 @@ class TypeStructureTest {
     ClassFileNode findNode(ClassFileNode root, String toFind) {
 
         for(ClassFileNode cur : root.getChildren()) {
-            if(cur.getThistype().getFqn().equals(toFind)) {
+            if(cur.getThisType().getFqn().equals(toFind)) {
                 return cur;
             }
         }
@@ -82,41 +82,41 @@ class TypeStructureTest {
     void singleChild(ClassFileNode root, Map<String, Object> expected) {
         ClassFileNode toTest = findNode(root, (String) expected.get("name"));
         Map<String, Object> child = (Map<String, Object>) expected.get("child");
-        assert(toTest.getChildren().get(0).getThistype().getFqn().equals((String) child.get("name")));
+        assert(toTest.getChildren().get(0).getThisType().getFqn().equals((String) child.get("name")));
     }
 
     void interfacesCheck(ClassFileNode root, Map<String, Object> expected) {
         ClassFileNode toTest = findNode(root, (String) expected.get("name"));
 
         List<Map<String, String>> expectedInterfaces = (List<Map<String, String>>) expected.get("interfaces");
-        List<ClassFileNode> interfaces = ((FoundInfoNode) toTest).getInterfaceNodes();
+        List<ClassFileNode> interfaces = ((DefinedClassFileNode) toTest).getInterfaceNodes();
 
         assertEquals(interfaces.size(), expectedInterfaces.size());
 
         for(int i = 0; i < interfaces.size(); i++) {
-            assertEquals(interfaces.get(i).getThistype().getFqn(), expectedInterfaces.get(i).get("name"));
-            assertEquals(((FoundInfoNode) interfaces.get(i)).getSuperClass().getThistype().getFqn(), expectedInterfaces.get(i).get("super"));
+            assertEquals(interfaces.get(i).getThisType().getFqn(), expectedInterfaces.get(i).get("name"));
+            assertEquals(((DefinedClassFileNode) interfaces.get(i)).getSuperClass().getThisType().getFqn(), expectedInterfaces.get(i).get("super"));
         }
     }
 
     void multipleChildren(ClassFileNode root, Map<String, Object> expected) {
-        assertEquals(root.getThistype().getFqn(), expected.get("name"));
+        assertEquals(root.getThisType().getFqn(), expected.get("name"));
 
         List<Map<String, String>> children = (List<Map<String, String>>) expected.get("children");
         assertEquals(root.getChildren().size(), children.size());
 
         for(int i = 0; i < root.getChildren().size(); i++) {
-            assertEquals(children.get(i).get("name"), root.getChildren().get(i).getThistype().getFqn());
+            assertEquals(children.get(i).get("name"), root.getChildren().get(i).getThisType().getFqn());
         }
         log.info("Got here");
     }
 
     void multiLevelChild(ClassFileNode root, Map<String, Object> expected) {
-        assertEquals(root.getThistype().getFqn(), expected.get("name"));
+        assertEquals(root.getThisType().getFqn(), expected.get("name"));
         List<Map<String, Object>> children = (List<Map<String, Object>>) expected.get("children");
-        assertEquals(root.getChildren().get(0).getThistype().getFqn(), children.get(0).get("name"));
+        assertEquals(root.getChildren().get(0).getThisType().getFqn(), children.get(0).get("name"));
         List<Map<String, String>> secondLevel = (List<Map<String, String>>) children.get(0).get("children");
-        assertEquals(root.getChildren().get(0).getChildren().get(0).getThistype().getFqn(), secondLevel.get(0).get("name"));
+        assertEquals(root.getChildren().get(0).getChildren().get(0).getThisType().getFqn(), secondLevel.get(0).get("name"));
     }
 
 }

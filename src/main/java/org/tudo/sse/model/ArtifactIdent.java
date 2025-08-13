@@ -13,6 +13,9 @@ import org.tudo.sse.utils.MavenCentralRepository;
  */
 public class ArtifactIdent {
 
+    /**
+     * The Maven Central repository base URL
+     */
     public static final String CENTRAL_REPOSITORY_URL = "https://repo1.maven.org/maven2/";
     /**
      * The group section of the identifier.
@@ -45,12 +48,23 @@ public class ArtifactIdent {
 
     private static final Logger log = LogManager.getLogger(ArtifactIdent.class);
 
+    /**
+     * Creates a new artifact identifier with the given attributes. Artifact identifiers correspond to Maven GAV-Triples.
+     * @param groupID The Maven group ID
+     * @param artifactID The Maven artifact ID
+     * @param version The artifact version
+     */
     public ArtifactIdent(String groupID, String artifactID, String version) {
         this.artifactID = artifactID;
         this.groupID = groupID;
         this.version = version;
     }
 
+    /**
+     * Copy-Constructor, creates a copy of the given artifact identifier.
+     *
+     * @param toCopy Identifier to copy
+     */
     public ArtifactIdent(ArtifactIdent toCopy) {
         this.groupID = toCopy.groupID;
         this.artifactID = toCopy.artifactID;

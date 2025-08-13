@@ -18,10 +18,18 @@ public class PomInformation extends ArtifactInformation {
     private Map<String, List<ArtifactIdent>> transitiveConflicts;
     private ArtifactIdent relocation;
 
+    /**
+     * Creates an empty PomInformation object with no artifact identifier. This is useful when analyzing POM files that
+     * are not hosted on Maven Central, e.g. local files.
+     */
     protected PomInformation() {
         super();
     }
 
+    /**
+     * Creates an empty PomInformation object for the given artifact identifier.
+     * @param ident The identifier for which to create the PomInformation
+     */
     public PomInformation(ArtifactIdent ident) {
         super(ident);
     }

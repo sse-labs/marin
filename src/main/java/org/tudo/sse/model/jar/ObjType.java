@@ -8,6 +8,12 @@ public class ObjType {
     private final String fqn;
     private final String packageName;
 
+    /**
+     * Creates a new object type with the given id, FQN and package name
+     * @param id ID uniquely identifying this object type
+     * @param fqn The type's fully qualified name
+     * @param packageName The type's package name
+     */
     public ObjType(long id, String fqn, String packageName) {
         this.id = id;
         this.fqn = fqn;

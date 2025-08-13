@@ -33,6 +33,7 @@ import java.util.function.Function;
  * These include the raw features, parent and imports, dependencies, all transitive dependencies, and effective transitive dependencies.
  */
 public class PomResolver {
+
     private final Path pathToDirectory;
     private final boolean output;
     private static final MavenCentralRepository MavenRepo = MavenCentralRepository.getInstance();
@@ -44,22 +45,40 @@ public class PomResolver {
     private final IReleaseListProvider releaseListProvider;
 
     /**
-     * In the constructor for this class, a boolean is passed to determine if transitive dependencies should be resolved when the resolution is run.
-     *
-     * @param resolveTransitives determines if transitive dependencies are to be resolved
+     * Creates a new PomResolver instance. This instance will not output processed POM files and will use the default
+     * release list provider instance.
+     * @param resolveTransitives Whether this instance shall process transitive POM files (i.e. imports, dependencies)
      */
     public PomResolver(boolean resolveTransitives) {
         this(resolveTransitives, DefaultMavenReleaseListProvider.getInstance());
     }
 
+    /**
+     * Creates a new PomResolver instance. This instance will not output processed POM files.
+     * @param resolveTransitives Whether this instance shall process transitive POM files (i.e. imports, dependencies)
+     * @param provider The release list provider instance to use for resolution
+     */
     public PomResolver(boolean resolveTransitives, IReleaseListProvider provider) {
         this(false, null, resolveTransitives, provider);
     }
 
+    /**
+     * Creates a new PomResolver instance. This instance will use the default release list provider instance.
+     * @param output Whether to output processed POM files
+     * @param pathToDirectory Path to output processed POM files to
+     * @param resolveTransitives Whether this instance shall process transitive POM files (i.e. imports, dependencies)
+     */
     public PomResolver(boolean output, Path pathToDirectory, boolean resolveTransitives){
         this(output, pathToDirectory, resolveTransitives, DefaultMavenReleaseListProvider.getInstance());
     }
 
+    /**
+     * Creates a new PomResolver instance.
+     * @param output Whether to output processed POM files
+     * @param pathToDirectory Path to output processed POM files to
+     * @param resolveTransitives Whether this instance shall process transitive POM files (i.e. imports, dependencies)
+     * @param provider The release list provider instance to use for resolution
+     */
     public PomResolver(boolean output, Path pathToDirectory, boolean resolveTransitives, IReleaseListProvider provider) {
         this.output = output;
         this.pathToDirectory = pathToDirectory;
@@ -165,6 +184,9 @@ public class PomResolver {
      * @param identifier id for the pom artifact to resolve
      * @return an artifact with resolved PomInformation
      * @see PomInformation
+     * @throws FileNotFoundException When the POM file does not exist for the given artifact
+     * @throws IOException If connection errors occur
+     * @throws PomResolutionException If the POM resolution process fails due to invalid file contents
      */
     public Artifact resolveArtifact(ArtifactIdent identifier) throws FileNotFoundException, IOException, PomResolutionException {
         Map<ArtifactIdent, Artifact> alrEncountered = new HashMap<>();
@@ -197,6 +219,7 @@ public class PomResolver {
      * @param identifier the identifier of the pom artifact being processed
      * @return an object containing all the features of the pom file
      * @see RawPomFeatures
+     * @throws PomResolutionException If the POM resolution process fails due to invalid file contents
      */
     public RawPomFeatures processRawPomFeatures(InputStream input, ArtifactIdent identifier) throws PomResolutionException {
         MavenXpp3Reader reader = new MavenXpp3Reader();
@@ -319,6 +342,9 @@ public class PomResolver {
      * This method handles resolving an artifact via raw Pom information and parent and dependency resolution
      * @param identifier used to retrieve the pom artifact from the maven central repository
      * @return an artifact with resolved rawPomFeatures, parent, and import information
+     * @throws PomResolutionException If the POM resolution process fails due to invalid file contents
+     * @throws FileNotFoundException When the POM file does not exist for the given artifact
+     * @throws IOException If connection errors occur
      */
     public Artifact processArtifact(ArtifactIdent identifier) throws PomResolutionException, FileNotFoundException, IOException {
         if(ArtifactFactory.getArtifact(identifier) != null && Objects.requireNonNull(ArtifactFactory.getArtifact(identifier)).getPomInformation() != null) {
@@ -371,7 +397,7 @@ public class PomResolver {
     }
 
     /**
-     *
+     * Resolves import scope dependencies and returns their corresponding artifacts.
      * @param managedDependencies list of managed dependencies from the rawPomFeatures, to be looked through for an import
      * @param info the current information object
      * @return a list of imported artifacts

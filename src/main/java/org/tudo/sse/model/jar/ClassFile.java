@@ -3,7 +3,8 @@ package org.tudo.sse.model.jar;
 import java.util.List;
 
 /**
- * This class contains the information parsed from the opal classfiles.
+ * This class represents a JVM class file contained within a JAR. Information contained here are parsed from OPAL's
+ * class file representation.
  */
 public class ClassFile {
     private final int accessFlags;
@@ -12,9 +13,18 @@ public class ClassFile {
     private final ObjType superType;
     private final List<ObjType> interfaceTypes;
 
-    public ClassFile(int accessFlags, ObjType thistype, long version, ObjType superType, List<ObjType> interfaceTypes) {
+    /**
+     * Creates a new ClassFile instance with the given attributes.
+     *
+     * @param accessFlags The classes access flags encoded as integer
+     * @param thisType The type defined within the class
+     * @param version The class file version
+     * @param superType The classes super type
+     * @param interfaceTypes A list of all interface types implemented by this class
+     */
+    public ClassFile(int accessFlags, ObjType thisType, long version, ObjType superType, List<ObjType> interfaceTypes) {
         this.accessFlags = accessFlags;
-        this.thistype = thistype;
+        this.thistype = thisType;
         this.version = version;
         this.superType = superType;
         this.interfaceTypes = interfaceTypes;

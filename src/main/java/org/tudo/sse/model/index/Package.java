@@ -1,10 +1,9 @@
 package org.tudo.sse.model.index;
 
 /**
-*  The Package represents each package stored under a single GAV.
-*  So multiple packages can be stored under a single GAV, so each are stored as a Package object.
-*/
-
+ *  This class represents a single package associated with an artifact on Maven Central. Any given artifact (GAV triple)
+ *  may contain multiple packages, each deployed in a different format (determined by the POM file packaging attribute).
+ */
 public class Package {
     private final String packaging;
     private final long lastModified;
@@ -14,6 +13,16 @@ public class Package {
     private final int javadocExists;
     private final long signatureExists;
 
+    /**
+     * Creates a new package object with the given attributes
+     * @param packaging The packaging definition identifying this particular Package within the artifact
+     * @param lastModified The timestamp that this package was last modified (uploaded)
+     * @param size The size of this package in bytes
+     * @param sourcesExist Whether a sources exist for this Package
+     * @param javadocExists Whether javadoc exists for this Package
+     * @param signatureExists Whether signatures exist for this Package
+     * @param sha1checksum This Package's SHA1 checksum
+     */
     public Package(String packaging, long lastModified, long size, int sourcesExist, int javadocExists, long signatureExists, String sha1checksum) {
         this.lastModified = lastModified;
         this.packaging = packaging;

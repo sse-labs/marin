@@ -20,14 +20,23 @@ import java.util.regex.Pattern;
 * This class also allows for the ability to walk all indexes or walk them in a paginated fashion.
 */
 
-public class IndexWalker implements Iterable<IndexInformation>{
+public class IndexWalker implements Iterable<IndexInformation> {
+
+    /**
+     * The string pattern at which to split index entries.
+     */
     public static final String splitPattern = Pattern.quote("|");
+
     private IndexIterator indexIterator;
     private boolean resetIterator;
     private final URI base;
 
     private static final Logger log = LogManager.getLogger(IndexWalker.class);
 
+    /**
+     * Creates a new IndexWalker with the given repository base URI.
+     * @param base The repository base URI.
+     */
     public IndexWalker(URI base) {
         this.base = base;
         resetIterator = true;
@@ -45,7 +54,9 @@ public class IndexWalker implements Iterable<IndexInformation>{
     }
 
     /**
-     * {@link MavenCentralAnalysis#lazyWalkAllIndexes(IndexIterator)}
+     * Produces a list of all artifact identifiers for the entire repository index.
+     * @return List of artifact identifiers inside the repository
+     * @throws IOException If connection errors occur
      */
     public List<ArtifactIdent> lazyWalkAllIndexes() throws IOException {
         if(resetIterator) {
@@ -62,7 +73,9 @@ public class IndexWalker implements Iterable<IndexInformation>{
     }
 
     /**
-     * {@link MavenCentralAnalysis#walkAllIndexes(IndexIterator)}
+     * Produces a list of all artifacts for the entire repository index. All artifacts are annotated with index information.
+     * @return List of artifacts (with index information)
+     * @throws IOException If connection errors occur
      */
     public List<Artifact> walkAllIndexes() throws IOException {
         if(resetIterator) {
@@ -82,11 +95,13 @@ public class IndexWalker implements Iterable<IndexInformation>{
     }
 
     /**
-     * {@link MavenCentralAnalysis#lazyWalkPaginated(long, IndexIterator)}
-     *
-     * @param skip how many indexes to skip from the beginning of the index
+     * Produces a list of artifacts from the repository index with the given pagination values.
+     * @param skip Number of artifact identifiers to skip
+     * @param take Number of artifact identifiers to take
+     * @return List of artifact identifiers
+     * @throws IOException If connection errors occur
      */
-    public List<ArtifactIdent> lazyWalkPaginated(long skip, long take) throws IOException{
+    public List<ArtifactIdent> lazyWalkPaginated(long skip, long take) throws IOException {
         if(resetIterator) {
             indexIterator = new IndexIterator(base);
         }
@@ -109,9 +124,12 @@ public class IndexWalker implements Iterable<IndexInformation>{
     }
 
     /**
-     * {@link MavenCentralAnalysis#walkPaginated(long, IndexIterator)}
-     *
-     * @param skip how many indexes to skip from the beginning of the index
+     * Produces a list of artifact identifiers from the repository index with the given pagination values. All artifacts
+     * are annotated with index information.
+     * @param skip Number of artifacts to skip
+     * @param take Number of artifacts to take
+     * @return List of artifacts with index information
+     * @throws IOException If connection errors occur
      */
     public List<Artifact> walkPaginated(long skip, long take) throws IOException {
         if(resetIterator) {
@@ -135,7 +153,11 @@ public class IndexWalker implements Iterable<IndexInformation>{
     }
 
     /**
-     * {@link MavenCentralAnalysis#walkDates(long, long, IndexIterator)}
+     * Produces a list of artifact identifiers from the repository index within the given time bounds.
+     * @param since Timestamp marking the lower bound for release dates
+     * @param until Timestamp marking the upper bound for release dates
+     * @return List of artifact identifiers
+     * @throws IOException If connection errors occur
      */
     public List<Artifact> walkDates(long since, long until) throws IOException {
             if(resetIterator) {
@@ -159,7 +181,12 @@ public class IndexWalker implements Iterable<IndexInformation>{
         }
 
     /**
-     * {@link MavenCentralAnalysis#lazyWalkDates(long, long, IndexIterator)}
+     * Produces a list of artifacts from the repository index within the given time bounds. All artifacts
+     * are annotated with index information.
+     * @param since Timestamp marking the lower bound for release dates
+     * @param until Timestamp marking the upper bound for release dates
+     * @return List of artifacts with index information
+     * @throws IOException If connection errors occur
      */
     public List<ArtifactIdent> lazyWalkDates(long since, long until) throws IOException{
         if(resetIterator) {
