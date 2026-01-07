@@ -2,8 +2,22 @@ package org.tudo.sse.semver;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Class representing a version number as defined by the semantic versioning 2.0.0 standard. See <a href="https://semver.org">this webpage</a> for
+ * the formal definition. This class implements all comparison logic for version numbers as defined by the standard.
+ *
+ * <p>
+ * <b>Please Note:</b> Build Metadata can be attached to semantic version numbers, but is irrelevant when comparing numbers.
+ * This is explicitly specified in the standard. This class adheres to those definitions and ignores build metadata when
+ * comparing numbers (compareTo) or checking for equality (equals, hashcode).
+ * </p>
+ *
+ *
+ * @author Johannes Düsing
+ */
 public class SemanticVersionNumber implements Comparable<SemanticVersionNumber> {
 
     private final int majorVersion;
@@ -15,14 +29,35 @@ public class SemanticVersionNumber implements Comparable<SemanticVersionNumber> 
 
     private List<PreReleasePart> _parsedPreReleases = null;
 
+    /**
+     * Creates a new semantic version number with the given major, minor and patch version.
+     * @param majorVersion Major version of this number
+     * @param minorVersion Minor version of this number
+     * @param patchVersion Patch version of this number
+     */
     public SemanticVersionNumber(int majorVersion, int minorVersion, int patchVersion) {
         this(majorVersion, minorVersion, patchVersion, null);
     }
 
+    /**
+     * Creates a new semantic version number with the given major, minor and patch versions, as well as a prerelease string.
+     * @param majorVersion Major version of this number
+     * @param minorVersion Minor version of this number
+     * @param patchVersion Patch version of this number
+     * @param preReleaseData Prelease identifier of this number
+     */
     public SemanticVersionNumber(int majorVersion, int minorVersion, int patchVersion, String preReleaseData) {
         this(majorVersion, minorVersion, patchVersion, preReleaseData, null);
     }
 
+    /**
+     * Creates a new semantic version number with the given major, minor and patch versions, as well as a prerelease and build identifier.
+     * @param majorVersion Major version of this number
+     * @param minorVersion Minor version of this number
+     * @param patchVersion Patch version of this number
+     * @param preReleaseData Prelease identifier of this number
+     * @param buildMetadata The build metadata identifier of this number - not relevant for comparisons
+     */
     public SemanticVersionNumber(int majorVersion, int minorVersion, int patchVersion, String preReleaseData, String buildMetadata) {
         this.majorVersion = majorVersion;
         this.minorVersion = minorVersion;
@@ -32,32 +67,63 @@ public class SemanticVersionNumber implements Comparable<SemanticVersionNumber> 
         this.buildMetadata = buildMetadata;
     }
 
+    /**
+     * Get this number's major version.
+     * @return The major version
+     */
     public int getMajorVersion(){
         return this.majorVersion;
     }
 
+    /**
+     * Get this number's minor version.
+     * @return The minor version
+     */
     public int getMinorVersion(){
         return this.minorVersion;
     }
 
+    /**
+     * Get this number's patch version.
+     * @return The patch version
+     */
     public int getPatchVersion(){
         return this.patchVersion;
     }
 
+    /**
+     * Checks whether this semantic version number includes a prerelease identifier.
+     * @return True if there is a prerelease identifier, false otherwise
+     */
     public boolean hasPreRelease(){
         return this.preReleaseData != null;
     }
+
+    /**
+     * Checks whether this semantic version number includes build metadata.
+     * @return True if there is metadata, false otherwise
+     */
     public boolean hasBuildMetadata(){
         return this.buildMetadata != null;
     }
 
+    /**
+     * Get this number's prerelease identifier, if available.
+     * @return The prerelease identifier, or null, if none is available.
+     */
     public String getPreRelease() {
         return this.preReleaseData;
     }
+
+    /**
+     * Get this number's build metadata, if available.
+     * @return The build metadata, or null, if none is available.
+     */
     public String getBuildMetadata() {
         return this.buildMetadata;
     }
 
+    @Override
     public final int compareTo(SemanticVersionNumber other){
         // The precedence of semantic version V2 numbers is defined here: https://semver.org/#spec-item-11
         // Note that build metadata is irrelevant to precedence
@@ -192,10 +258,23 @@ public class SemanticVersionNumber implements Comparable<SemanticVersionNumber> 
         }
     }
 
+    /**
+     * Attempts to create a new semantic version number by parsing the given string value. If the string does not represent
+     * a valid number according to the semantic versioning 2.0.0 standard, an exception is thrown.
+     * @param value The string value to parse
+     * @return The semantic version number if parsing was successful
+     * @throws SemanticVersionParsingException If the value was invalid
+     */
     public static SemanticVersionNumber parse(String value) throws SemanticVersionParsingException {
         return SemanticVersionParser.parseNumber(value);
     }
 
+    /**
+     * Attempts to create a new semantic version number by parsing the given string value. If the string does not represent
+     * a valid number according to the semantic versioning 2.0.0 standard, an empty Optional is returned.
+     * @param value The string value to parse
+     * @return Optional value containing either the parsed number (if parsing was successful), or nothing
+     */
     public static Optional<SemanticVersionNumber> tryParse(String value) {
         try {
             SemanticVersionNumber number = parse(value);
@@ -225,5 +304,17 @@ public class SemanticVersionNumber implements Comparable<SemanticVersionNumber> 
         }
 
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object other){
+        if(!(other instanceof SemanticVersionNumber)) return false;
+
+        return this.compareTo((SemanticVersionNumber)other) == 0;
+    }
+
+    @Override
+    public int hashCode(){
+        return Objects.hash(majorVersion, minorVersion, patchVersion, preReleaseData);
     }
 }

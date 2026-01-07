@@ -5,6 +5,8 @@ import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tudo.sse.semver.SemanticVersionNumber;
+import org.tudo.sse.semver.SemanticVersionParsingException;
 import org.tudo.sse.utils.MavenCentralRepository;
 
 
@@ -46,6 +48,11 @@ public class ArtifactIdent {
      * The repository where this artifact can be found - if different from the central Repo
      */
     private String customRepository;
+
+    private boolean didParseSemVer = false;
+    private boolean semVerValid = false;
+    private SemanticVersionNumber semVer = null;
+    private SemanticVersionParsingException semVerException = null;
 
     private static final Logger log = LoggerFactory.getLogger(ArtifactIdent.class);
 
@@ -135,6 +142,9 @@ public class ArtifactIdent {
     public void setVersion(String version) {
         this.version = version;
         this.GAV = groupID + ":" + artifactID + ":" + version;
+
+        this.semVer = null;
+        this.didParseSemVer = false;
     }
 
     /**
@@ -206,6 +216,47 @@ public class ArtifactIdent {
         } catch(Exception x){
             log.error("Failed to build maven-metadata url: {}", x.getMessage());
             return null;
+        }
+    }
+
+    /**
+     * Parses this identifier's version according to the semantic versioning 2.0.0 standard. Returns the parsed number,
+     * or throws an exception if the version does not comply to the required syntax. Note that the result of this method
+     * invocation is cached, meaning that future calls will return the same parsed semantic version or throw the same
+     * exception - parsing is only ever attempted once.
+     *
+     * @return Semantic version number if parsing was successful.
+     * @throws SemanticVersionParsingException If version does not adhere to required syntax
+     */
+    public SemanticVersionNumber getSemanticVersion() throws SemanticVersionParsingException {
+
+        if(this.didParseSemVer && this.semVerValid) return this.semVer;
+        if(this.didParseSemVer) throw this.semVerException;
+
+        try {
+            this.didParseSemVer = true;
+            this.semVer = SemanticVersionNumber.parse(this.version);
+            this.semVerValid = true;
+        } catch (SemanticVersionParsingException svpx){
+            this.semVerException = svpx;
+            this.semVerValid = false;
+            throw this.semVerException;
+        }
+
+        return this.semVer;
+    }
+
+    /**
+     * Checks whether this identifier's version is valid according to the semantic versioning 2.0.0 standard. The results
+     * of this method invocation are cached so that future calls do not have to parse the version string again.
+     * @return True if this identifier has a valid semantic version, false otherwise
+     */
+    public boolean hasValidSemanticVersion() {
+        try {
+            this.getSemanticVersion();
+            return true;
+        } catch(SemanticVersionParsingException svpx){
+            return false;
         }
     }
 
