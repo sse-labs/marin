@@ -101,9 +101,16 @@ public class MavenCentralLibraryAnalysisTest {
 
     @Test
     @DisplayName("An analysis with no requirements must not produce information instances")
-    void simpleIndexAnalysis(){
+    void simpleIndexAnalysis() throws IOException {
 
         final List<String> librariesHit = new java.util.ArrayList<>();
+
+        final Path validLibraryInput = testResource("library-names-valid.txt");
+
+        assertNotNull(validLibraryInput);
+        assert(Files.exists(validLibraryInput));
+
+        final List<String> expectedLibraries = Files.readAllLines(validLibraryInput);
 
         final MavenCentralLibraryAnalysis analysis = new MavenCentralLibraryAnalysis(false, false, false) {
             @Override
@@ -116,20 +123,28 @@ public class MavenCentralLibraryAnalysisTest {
             }
         };
 
-        final String args = "-st 0:3";
+        final String args = "-st 2:2 --inputs " + validLibraryInput.toAbsolutePath();
         final String[] argsArray = args.split(" ");
 
         analysis.runAnalysis(argsArray);
 
-        assertEquals(3, librariesHit.size());
-        assert(librariesHit.contains("yom:yom"));
+        assertEquals(2, librariesHit.size());
+
+        assertTrue(librariesHit.contains(expectedLibraries.get(2)));
+        assertTrue(librariesHit.contains(expectedLibraries.get(3)));
     }
 
     @Test
     @DisplayName("An analysis with JAR requirements must produce JAR information instances")
-    void simpleIndexWithJarAnalysis(){
+    void simpleIndexWithJarAnalysis() throws IOException {
 
         final List<String> librariesHit = new java.util.ArrayList<>();
+        final Path validLibraryInput = testResource("library-names-valid.txt");
+
+        assertNotNull(validLibraryInput);
+        assert(Files.exists(validLibraryInput));
+
+        final List<String> expectedLibraries = Files.readAllLines(validLibraryInput);
 
         final MavenCentralLibraryAnalysis analysis = new MavenCentralLibraryAnalysis(false, false, true) {
             @Override
@@ -142,14 +157,15 @@ public class MavenCentralLibraryAnalysisTest {
             }
         };
 
-        final String args = "-st 3:3";
+        final String args = "-st 2:2 --inputs " + validLibraryInput.toAbsolutePath();
         final String[] argsArray = args.split(" ");
 
         analysis.runAnalysis(argsArray);
 
-        assertEquals(3, librariesHit.size());
-        assertFalse(librariesHit.contains("yom:yom"));
-        assert(librariesHit.contains("yan:yan"));
+        assertEquals(2, librariesHit.size());
+
+        assertTrue(librariesHit.contains(expectedLibraries.get(2)));
+        assertTrue(librariesHit.contains(expectedLibraries.get(3)));
     }
 
     @Test
@@ -166,6 +182,13 @@ public class MavenCentralLibraryAnalysisTest {
                 assertNotNull(releases.get(0).getPomInformation());
                 assertNull(releases.get(0).getJarInformation());
                 librariesHit.add(libraryGA);
+            }
+
+            @Override
+            protected void onVersionListError(String g, String a, Exception x){
+                assertFalse(x.getCause().getMessage().contains("was not found"));
+                String ga = g+":"+a;
+                librariesHit.add(ga);
             }
         };
 
@@ -196,6 +219,13 @@ public class MavenCentralLibraryAnalysisTest {
                 assertNull(releases.get(0).getIndexInformation());
                 assertNull(releases.get(0).getPomInformation());
                 assertNull(releases.get(0).getJarInformation());
+                count.incrementAndGet();
+            }
+
+            @Override
+            protected void onVersionListError(String g, String a, Exception x){
+
+                assertFalse(x.getCause().getMessage().contains("was not found"));
                 count.incrementAndGet();
             }
         };

@@ -14,12 +14,12 @@ public class ArtifactAnalysisConfig extends LibraryAnalysisConfig {
     static final Path DEFAULT_VALUE_OUTPUT = null;
 
     /**
-     * Timestamp before which artifacts shall be excluded from analysis, or -1 if disabled.
+     * UNIX timestamp (in milliseconds) before which artifacts shall be excluded from analysis, or -1 if disabled.
      */
     public long since;
 
     /**
-     * Timestamp after which artifacts shall be excluded from analysis, or -1 if disabled.
+     * UNIX timestamp (in milliseconds) after which artifacts shall be excluded from analysis, or -1 if disabled.
      */
     public long until;
 

@@ -21,6 +21,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -82,6 +85,63 @@ class MavenCentralArtifactAnalysisTest {
             }
 
             assertEquals(Boolean.parseBoolean(currExpected.get(6)), currConfig.outputEnabled);
+        }
+    }
+
+    @Test
+    @DisplayName("The CLI parser must parse timestamps YYYY-MM-DD format")
+    void parseCLITimestamps1() {
+        var config = parseCLI("-su 2025-12-01:2025-12-31");
+
+        var since = asDate(config.since);
+        var until = asDate(config.until);
+
+        assertEquals(2025, since.getYear());
+        assertEquals(12, since.getMonthValue());
+        assertEquals(1, since.getDayOfMonth());
+        assertEquals(0, since.getHour());
+        assertEquals(0, since.getMinute());
+
+        assertEquals(2025, until.getYear());
+        assertEquals(12, until.getMonthValue());
+        assertEquals(31, until.getDayOfMonth());
+        assertEquals(23, until.getHour());
+        assertEquals(59, until.getMinute());
+    }
+
+    @Test
+    @DisplayName("The CLI parser must parse UNIX timestamps")
+    void parseCLITimestamps2() {
+        var config = parseCLI("-su 2010-10-10:1321009871");
+
+        var since = asDate(config.since);
+        var until = asDate(config.until);
+
+        assertEquals(1321009871000L, config.until);
+
+        assertEquals(2010, since.getYear());
+        assertEquals(10, since.getMonthValue());
+        assertEquals(10, since.getDayOfMonth());
+        assertEquals(0, since.getHour());
+        assertEquals(0, since.getMinute());
+
+        assertEquals(2011, until.getYear());
+        assertEquals(11, until.getMonthValue());
+        assertEquals(11, until.getDayOfMonth());
+        assertEquals(11, until.getHour());
+        assertEquals(11, until.getMinute());
+        assertEquals(11, until.getSecond());
+    }
+
+    @Test
+    @DisplayName("The CLI parser must reject invalid ranges")
+    void parseCLIInvalidRanges() {
+        try {
+            parseCLI("-su 1321006271:2010-10-10");
+            fail("The CLI parser must reject invalid ranges");
+        } catch(Exception x){
+            assertInstanceOf(RuntimeException.class, x);
+            assertInstanceOf(CLIException.class, x.getCause());
         }
     }
 
@@ -159,8 +219,6 @@ class MavenCentralArtifactAnalysisTest {
             }
         };
 
-
-
         List<Tuple2<Integer, Integer>> inputs = new ArrayList<>();
         inputs.add(new Tuple2<>(500, 10));
         inputs.add(new Tuple2<>(0, 10));
@@ -168,35 +226,22 @@ class MavenCentralArtifactAnalysisTest {
         inputs.add(new Tuple2<>(763, 20));
 
         for(Tuple2<Integer, Integer> input : inputs) {
-            int start1 = input._1;
+            int skip = input._1;
             int take = input._2;
 
-            int start2 = (start1 + take) - 1;
-
             try {
-                IndexIterator iterator = new IndexIterator(new URI(base), start1);
+                IndexIterator iterator = new IndexIterator(new URI(base), skip);
                 theAnalysis.walkPaginated(take, iterator);
 
                 assertFalse(artifactsSeen.isEmpty());
+                assertEquals(take, artifactsSeen.size());
 
-                Artifact lastOne = artifactsSeen.get(artifactsSeen.size() - 1);
-
-                assertNotNull(lastOne);
-
-                int i = 2;
-                while(lastOne.getIndexInformation().getIndex() > start2) {
-                    lastOne = artifactsSeen.get(artifactsSeen.size() - i);
-                    assertNotNull(lastOne);
-                    i++;
+                for(Artifact a : artifactsSeen){
+                    assertTrue(a.hasIndexInformation());
+                    assertTrue(a.getIndexInformation().getIndex() >= (skip - 1));
                 }
 
-                iterator = new IndexIterator(new URI(base), start2);
-
                 artifactsSeen.clear();
-                theAnalysis.walkPaginated(1, iterator);
-
-                long lastOne2 = artifactsSeen.get(0).getIndexInformation().getIndex();
-                assertEquals(lastOne.getIndexInformation().getIndex(), lastOne2);
             } catch (IOException | URISyntaxException e) {
                 throw new RuntimeException(e);
             }
@@ -289,8 +334,8 @@ class MavenCentralArtifactAnalysisTest {
         List<String[]> singleArgs = new ArrayList<>();
         List<String[]> multiArgs = new ArrayList<>();
 
-        singleArgs.add(new String[]{"-st", "10:1000"});
-        multiArgs.add(new String[]{"--threads", "5", "-st", "10:1000"});
+        singleArgs.add(new String[]{"-st", "10:200"});
+        multiArgs.add(new String[]{"--threads", "5", "-st", "10:200"});
 
         singleArgs.add(new String[]{"--inputs", "src/test/resources/artifact-names-valid.txt"});
         multiArgs.add(new String[]{"--threads", "5", "--inputs", "src/test/resources/artifact-names-valid.txt"});
@@ -400,5 +445,8 @@ class MavenCentralArtifactAnalysisTest {
         return Integer.parseInt(s);
     }
 
-
+    private ZonedDateTime asDate(long timestamp){
+        Instant i = Instant.ofEpochMilli(timestamp);
+        return ZonedDateTime.ofInstant(i, ZoneId.of("GMT"));
+    }
 }

@@ -28,10 +28,17 @@ public abstract class ResolutionContext {
     protected final Map<ArtifactIdent, Artifact> artifactsResolved;
 
     /**
+     * Set of artifact identifiers that are currently being under resolution by any Resolver. Helps avoid infinite
+     * resolution loops.
+     */
+    protected final Set<ArtifactIdent> currentlyResolving;
+
+    /**
      * Builds a new ResolutionContext instance.
      */
     protected ResolutionContext(){
         this.artifactsResolved = new HashMap<>();
+        this.currentlyResolving = new HashSet<>();
     }
 
     /**
@@ -65,6 +72,31 @@ public abstract class ResolutionContext {
      */
     public Set<Artifact> getAllArtifactsResolved(){
         return new HashSet<>(artifactsResolved.values());
+    }
+
+    /**
+     * Check whether the given artifact identifier is currently being resolved in this context.
+     * @param ident Artifact identifier to check
+     * @return True if this identifier is currently being resolved, false otherwise
+     */
+    public boolean isCurrentlyResolving(ArtifactIdent ident){
+        return this.currentlyResolving.contains(ident);
+    }
+
+    /**
+     * Mark the given artifact identifier as currently being resolved in this context.
+     * @param ident The identifier to mark
+     */
+    public void setIsCurrentlyResolving(ArtifactIdent ident){
+        this.currentlyResolving.add(ident);
+    }
+
+    /**
+     * Mark the given artifact identifier as not being resolved anymore in this context.
+     * @param ident The identifier to mark
+     */
+    public void setIsFinishedResolving(ArtifactIdent ident){
+        this.currentlyResolving.remove(ident);
     }
 
 }

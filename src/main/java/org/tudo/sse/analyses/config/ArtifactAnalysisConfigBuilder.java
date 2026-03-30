@@ -2,6 +2,7 @@ package org.tudo.sse.analyses.config;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.ZonedDateTime;
 
 /**
  * Configuration builder to obtain {@link ArtifactAnalysisConfig} instances programmatically.
@@ -104,8 +105,21 @@ public final class ArtifactAnalysisConfigBuilder extends LibraryAnalysisConfigBu
      * Sets a time-based range to filter artifacts for. The resulting analysis will only process artifacts that have
      * been released after the timestamp given in 'since', and before 'until'.
      *
-     * @param since Timestamp marking the lower limit of the range
-     * @param until Timestamp marking the upper limit of the range
+     * @param since DateTime marking the lower limit of the range
+     * @param until DateTime marking the upper limit of the range
+     * @return The current configuration builder instance
+     * @throws InvalidConfigurationException If the given configuration values are not valid
+     */
+    public ArtifactAnalysisConfigBuilder withSinceUntil(ZonedDateTime since, ZonedDateTime until) throws InvalidConfigurationException {
+        return this.withSinceUtil(since.toInstant().toEpochMilli(), until.toInstant().toEpochMilli());
+    }
+
+    /**
+     * Sets a time-based range to filter artifacts for. The resulting analysis will only process artifacts that have
+     * been released after the timestamp given in 'since', and before 'until'.
+     *
+     * @param since UNIX timestamp in milliseconds marking the lower limit of the range
+     * @param until UNIX timestamp in milliseconds marking the upper limit of the range
      * @return The current configuration builder instance
      * @throws InvalidConfigurationException If the given configuration values are not valid
      */

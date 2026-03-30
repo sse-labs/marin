@@ -3,7 +3,6 @@ package org.tudo.sse.utils;
 import org.apache.maven.index.reader.IndexReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tudo.sse.IndexWalker;
 import org.tudo.sse.model.ArtifactIdent;
 import org.tudo.sse.model.index.Package;
 import org.tudo.sse.model.index.IndexInformation;
@@ -13,6 +12,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
 * This class creates an iterator for iterating over indexes and returning IndexArtifact objects.
@@ -22,6 +22,12 @@ import java.util.Map;
 */
 
 public class IndexIterator implements Iterator<IndexInformation> {
+
+    /**
+     * Pattern to split Lucene Index entries at
+     */
+    private static final String splitPattern = Pattern.quote("|");
+
     private long index;
 
     private final URI baseUri;
@@ -96,7 +102,7 @@ public class IndexIterator implements Iterator<IndexInformation> {
      * @see ArtifactIdent
      */
     public ArtifactIdent processArtifactIdent(String gav) {
-        String[] parts = gav.split(IndexWalker.splitPattern);
+        String[] parts = gav.split(splitPattern);
         return new ArtifactIdent(parts[0], parts[1], parts[2]);
     }
 
@@ -110,7 +116,7 @@ public class IndexIterator implements Iterator<IndexInformation> {
      */
     public Package processPackage(String information, String checksum) {
         if(information != null) {
-            String[] parts = information.split(IndexWalker.splitPattern);
+            String[] parts = information.split(splitPattern);
             return new Package(parts[0], Long.parseLong(parts[1]), Long.parseLong(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(parts[4]), Integer.parseInt(parts[5]), checksum);
         }
         return null;
@@ -141,7 +147,7 @@ public class IndexIterator implements Iterator<IndexInformation> {
 
         //Create an artifact using the values found in the 'i' and '1' tags
         if(iVal != null) {
-            String[] parts = iVal.split(IndexWalker.splitPattern);
+            String[] parts = iVal.split(splitPattern);
 
             Package tmpPackage = new Package(parts[0], Long.parseLong(parts[1]), Long.parseLong(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(parts[4]), Integer.parseInt(parts[5]), item.get("1"));
 

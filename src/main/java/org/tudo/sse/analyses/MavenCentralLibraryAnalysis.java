@@ -276,7 +276,7 @@ public abstract class MavenCentralLibraryAnalysis extends MavenCentralAnalysis {
             }
             return identifiers;
         } catch (Exception x) {
-            log.warn("Failed to obtain version list for library {}:{}", groupId, artifactId, x);
+            log.warn("Failed to obtain version list for library {}:{} ({})", groupId, artifactId, x.getCause().getMessage());
 
             try { this.onVersionListError(groupId, artifactId, x); }
             catch(Exception inner) {

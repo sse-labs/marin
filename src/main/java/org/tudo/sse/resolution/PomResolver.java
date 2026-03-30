@@ -352,9 +352,18 @@ public class PomResolver {
     public Artifact processArtifact(ArtifactIdent identifier, ResolutionContext ctx) throws PomResolutionException, FileNotFoundException, IOException {
         final Artifact currentArtifact = ctx.createArtifact(identifier);
 
+        // If resolution on this artifact already begun (because, e.g. we are in an infinite dependency loop),
+        // we do not re-start resolution, but just return the artifact object - it will be fully resolved
+        // eventually
+        if(ctx.isCurrentlyResolving(identifier))
+            return currentArtifact;
+
         // Only build pom information if it is not already present for the current resolution context
         if(currentArtifact.hasPomInformation())
             return currentArtifact;
+
+        // Record that we are currently resolving this artifact
+        ctx.setIsCurrentlyResolving(identifier);
 
         PomInformation pomInformation = new PomInformation(identifier);
 
@@ -362,7 +371,11 @@ public class PomResolver {
         try(InputStream is = MavenRepo.openPomFileInputStream(identifier) ) {
             rawPomFeatures = processRawPomFeatures(is, identifier);
         } catch (SocketException e) {
+            ctx.setIsFinishedResolving(identifier);
             throw new PomResolutionException(e.getMessage(), identifier, e);
+        } catch(Exception x){
+            ctx.setIsFinishedResolving(identifier);
+            throw x;
         }
 
         ArtifactIdent relocation = null;
@@ -381,6 +394,9 @@ public class PomResolver {
 
         // Finally set pom information for current artifact, then return
         currentArtifact.setPomInformation(pomInformation);
+
+        // Record that we are no longer currently resolving this artifact
+        ctx.setIsFinishedResolving(identifier);
 
         return currentArtifact;
     }
@@ -540,18 +556,22 @@ public class PomResolver {
 
             if(current.getImports() != null) {
                 for(Artifact anImport : current.getImports()) {
-                    if(anImport.getPomInformation().getRawPomFeatures().getDependencyManagement() != null) {
-                        Tuple2<String, String> depStuff = findGA(missingVersion, anImport.getPomInformation().getRawPomFeatures().getDependencyManagement());
-                        if(depStuff != null) {
-                            if(depStuff._2 != null) {
-                                toReturn.setScope(depStuff._2);
-                                return toReturn;
+                    // Import resolution may have failed because of invalid import specifications. In that case, no POM
+                    // information will be present. We only try to expand imports for which we have pom information.
+                    if(anImport.hasPomInformation()) {
+                        if(anImport.getPomInformation().getRawPomFeatures().getDependencyManagement() != null) {
+                            Tuple2<String, String> depStuff = findGA(missingVersion, anImport.getPomInformation().getRawPomFeatures().getDependencyManagement());
+                            if(depStuff != null) {
+                                if(depStuff._2 != null) {
+                                    toReturn.setScope(depStuff._2);
+                                    return toReturn;
+                                }
                             }
                         }
-                    }
-                    toReturn = recursiveHandler(anImport.getPomInformation(), toReturn);
-                    if(toReturn.getScope() != null) {
-                        return toReturn;
+                        toReturn = recursiveHandler(anImport.getPomInformation(), toReturn);
+                        if(toReturn.getScope() != null) {
+                            return toReturn;
+                        }
                     }
                 }
             }
@@ -629,21 +649,25 @@ public class PomResolver {
 
             if(!parentResolved && current.getImports() != null) {
                 for(Artifact anImport : current.getImports()) {
-                    if(anImport.getPomInformation().getRawPomFeatures().getDependencyManagement() != null) {
-                        Tuple2<String, String> depStuff = findGA(missingVersion, anImport.getPomInformation().getRawPomFeatures().getDependencyManagement());
-                        if(depStuff != null) {
-                            version = depStuff._1;
-                            if(depStuff._2 != null && toReturn.getScope() == null) {
-                                toReturn.setScope(depStuff._2);
+                    // Import resolution may have failed because of invalid import specifications. In that case, no POM
+                    // information will be present. We only try to expand imports for which we have pom information.
+                    if(anImport.hasPomInformation()){
+                        if(anImport.getPomInformation().getRawPomFeatures().getDependencyManagement() != null) {
+                            Tuple2<String, String> depStuff = findGA(missingVersion, anImport.getPomInformation().getRawPomFeatures().getDependencyManagement());
+                            if(depStuff != null) {
+                                version = depStuff._1;
+                                if(depStuff._2 != null && toReturn.getScope() == null) {
+                                    toReturn.setScope(depStuff._2);
+                                }
+                                toReturn.getIdent().setVersion(version);
+                                current = anImport.getPomInformation();
                             }
-                            toReturn.getIdent().setVersion(version);
-                            current = anImport.getPomInformation();
                         }
-                    }
-                    if(version == null) {
-                        toReturn = recursiveHandler(anImport.getPomInformation(), toReturn);
-                        curIdent = toReturn.getIdent();
-                        version = curIdent.getVersion();
+                        if(version == null) {
+                            toReturn = recursiveHandler(anImport.getPomInformation(), toReturn);
+                            curIdent = toReturn.getIdent();
+                            version = curIdent.getVersion();
+                        }
                     }
                 }
             }

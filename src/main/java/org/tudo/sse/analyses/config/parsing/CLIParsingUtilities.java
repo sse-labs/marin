@@ -61,6 +61,28 @@ interface CLIParsingUtilities {
     }
 
     /**
+     * Parses the next argument from the given array of arguments as a pair of string values, separated by a colon. The
+     * pair is returned as a string-array of size 2.
+     * @param args The CLI arguments
+     * @param i The current parsing position
+     * @return The <b>next</b> argument at position i+1 as a pair of string values
+     * @throws CLIException If there is no next argument, or it is not formatted as two string values separated by a colon.
+     */
+    default String[] nextArgAsStringPair(String[] args, int i) throws CLIException {
+        if(i + 1 < args.length) {
+            String[] toReturn = args[i + 1].split(":");
+
+            if(toReturn.length != 2) {
+                throw new CLIException("Expected a colon-separated pair of strings", args[i]);
+            }
+
+            return toReturn;
+        } else {
+            throw(new CLIException("Missing argument: first:second", args[i]));
+        }
+    }
+
+    /**
      * Parses the next argument from the given array of arguments as a Path value.
      *
      * @param args The CLI arguments

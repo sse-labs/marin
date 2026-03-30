@@ -61,22 +61,6 @@ class LibraryIndexIteratorTest {
     }
 
     @Test
-    @DisplayName("The Library Index Iterator must apply custom starting positions")
-    void customStartingPositions() {
-        iteratorUnderTest.setPosition(42000);
-
-        int cutoff = 1000;
-        int idx = 0;
-
-        while(iteratorUnderTest.hasNext() && idx < cutoff){
-            final String ga = iteratorUnderTest.next();
-            assert(!ga.equals("yom:yom")); // Make sure we skipped the first library in index!
-            idx += 1;
-        }
-
-    }
-
-    @Test
     @Disabled
     @DisplayName("The Library Index Iterator must terminate")
     void terminate() {

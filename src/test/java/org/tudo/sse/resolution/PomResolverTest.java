@@ -1,22 +1,22 @@
 package org.tudo.sse.resolution;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tudo.sse.IndexWalker;
 import org.tudo.sse.model.*;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
+import java.nio.file.Files;
+import java.util.*;
 import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Map;
-import java.util.ArrayList;
 import java.util.stream.IntStream;
 
 import org.apache.commons.io.IOUtils;
@@ -25,9 +25,11 @@ import org.tudo.sse.model.pom.License;
 import org.tudo.sse.model.pom.RawPomFeatures;
 import org.tudo.sse.model.ResolutionContext;
 import org.tudo.sse.resolution.releases.IReleaseListProvider;
+import org.tudo.sse.utils.JsonExporter;
 
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.tudo.sse.utils.TestUtilities.testResource;
 
 @SuppressWarnings("unchecked")
 class PomResolverTest {
@@ -73,37 +75,62 @@ class PomResolverTest {
     }
 
     @Test
-    void processArtifacts() {
-        //walk 10 indexes
-        List<ArtifactIdent> idents;
-        try {
-            IndexWalker walker = new IndexWalker(new URI("https://repo1.maven.org/maven2/"));
-            idents = walker.lazyWalkPaginated(200000, 10);
-        } catch (IOException | URISyntaxException e) {
-            throw new RuntimeException(e);
+    @DisplayName("Assert correct raw pom feature contents")
+    void processArtifacts() throws IOException {
+        List<String> identStrings = Files.readAllLines(Objects.requireNonNull(testResource("artifact-names-valid.txt")));
+
+        List<ArtifactIdent> idents = new ArrayList<>();
+
+        for(String ident : identStrings) {
+            String[] parts = ident.split(":");
+            idents.add(new ArtifactIdent(parts[0], parts[1], parts[2]));
         }
 
         ArrayList<Map<String, Object>> expected = (ArrayList<Map<String, Object>>) json.get("resolveArtifacts");
 
         List<Artifact> poms = pomResolver.resolveArtifacts(idents, testContext);
 
+        assertEquals(10, poms.size());
+
         //check to see that the parsed data from the POM for these indexes are correct for actually retrieving the files from url
         for(int i = 0; i < expected.size(); i++) {
-            RawPomFeatures current = poms.get(i).getPomInformation().getRawPomFeatures();
-            checkRawFeatures(current, expected, i);
+            assertNotNull(poms.get(i).getPomInformation());
+            assertNotNull(poms.get(i).getPomInformation().getRawPomFeatures());
+            checkRawFeatures(poms.get(i).getPomInformation().getRawPomFeatures(), expected, i);
         }
     }
 
-    //touch this up to throw all exceptions, should have 100% coverage for the pomResolver class
-    void processArtifactsCov() {
-        List<ArtifactIdent> idents;
-        try {
-            IndexWalker walker = new IndexWalker(new URI("https://repo1.maven.org/maven2/"));
-            idents = walker.lazyWalkPaginated(0, 10000);
-        } catch (IOException | URISyntaxException e) {
-            throw new RuntimeException(e);
+    @Test
+    @DisplayName("Export new expected values for: Assert correct raw pom feature contents")
+    @Disabled
+    void exportRawPomFeatures() throws IOException {
+        final Gson exportGson = new GsonBuilder().setPrettyPrinting().create();
+        List<String> identStrings = Files.readAllLines(Objects.requireNonNull(testResource("artifact-names-valid.txt")));
+
+        List<ArtifactIdent> idents = new ArrayList<>();
+
+        for(String ident : identStrings) {
+            String[] parts = ident.split(":");
+            idents.add(new ArtifactIdent(parts[0], parts[1], parts[2]));
         }
 
+        ArrayList<Map<String, Object>> expected = (ArrayList<Map<String, Object>>) json.get("resolveArtifacts");
+
+        List<Artifact> poms = pomResolver.resolveArtifacts(idents, testContext);
+
+        assertEquals(10, poms.size());
+
+        JsonArray exportArray = new JsonArray();
+
+        //check to see that the parsed data from the POM for these indexes are correct for actually retrieving the files from url
+        for(int i = 0; i < expected.size(); i++) {
+            assertNotNull(poms.get(i).getPomInformation());
+            assertNotNull(poms.get(i).getPomInformation().getRawPomFeatures());
+            JsonObject exportObject = JsonExporter.exportRawPomFeatures(poms.get(i).getPomInformation().getRawPomFeatures());
+            exportArray.add(exportObject);
+        }
+
+        exportGson.toJson(exportArray, System.out);
     }
 
     @Test
@@ -373,5 +400,19 @@ class PomResolverTest {
                 assertEquals(expectedDeps.get(j), actual);
             }
         }
+    }
+
+    @Test
+    @DisplayName("The POM resolver must not loop for circular dependencies")
+    void resolveDependencyLoop() {
+        // Based on https://github.com/sse-labs/marin/issues/52
+        final ArtifactIdent loopingArtifact = new ArtifactIdent("net.wicp.tams", "ts-maven-plugin", "8.0.2");
+        final ArtifactResolutionContext freshCtx = ArtifactResolutionContext.newInstance(loopingArtifact);
+
+        final Artifact artifact = pomResolver.resolveArtifacts(List.of(loopingArtifact), freshCtx).get(0);
+
+        assertNotNull(artifact);
+
+
     }
 }
