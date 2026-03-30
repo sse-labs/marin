@@ -7,6 +7,7 @@ import org.tudo.sse.analyses.config.LibraryAnalysisConfig;
 import org.tudo.sse.model.Artifact;
 import org.tudo.sse.analyses.config.parsing.LibraryAnalysisConfigParser;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -70,11 +71,26 @@ public class MavenCentralLibraryAnalysisTest {
     }
 
     @Test
-    @DisplayName("The CLI parser must fail if input files do not exist")
-    void parseNonExistingFile(){
-        final String validArgs = "--progress-restore-file foo.input";
+    @DisplayName("The CLI parser must create a default progress restore file with progress 0 if file does not exist")
+    void parseNonExistingFile() throws IOException {
+        final String fileRef = "foo.input";
+        final File nonExistingInput = new File(fileRef);
 
-        assertThrows(RuntimeException.class, () -> parseCLI(validArgs));
+        Files.deleteIfExists(nonExistingInput.toPath());
+
+        assertFalse(nonExistingInput.exists());
+
+        final String validArgs = "--progress-restore-file " + fileRef;
+
+        final LibraryAnalysisConfig config = parseCLI(validArgs);
+
+        assertEquals(nonExistingInput.toPath(), config.progressRestoreFile);
+        assertTrue(nonExistingInput.exists());
+
+        String content = Files.readString(nonExistingInput.toPath());
+        assertEquals("0", content);
+
+        Files.deleteIfExists(nonExistingInput.toPath());
     }
 
     @Test

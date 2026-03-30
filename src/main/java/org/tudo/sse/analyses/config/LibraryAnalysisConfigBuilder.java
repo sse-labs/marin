@@ -3,8 +3,10 @@ package org.tudo.sse.analyses.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 /**
  * Configuration builder to obtain {@link LibraryAnalysisConfig} instances programmatically.
@@ -120,7 +122,20 @@ public class LibraryAnalysisConfigBuilder {
      * @throws InvalidConfigurationException If the given configuration value is not valid
      */
     public LibraryAnalysisConfigBuilder withProgressRestoreFile(Path restoreFile) throws InvalidConfigurationException {
-        if(restoreFile == null || !Files.isRegularFile(restoreFile))
+
+        boolean fileExists = Files.isRegularFile(restoreFile);
+
+        if(!fileExists){
+            try {
+                log.info("Progress restore file does not yet exists, creating default at {}", restoreFile.toAbsolutePath());
+                Files.write(restoreFile, "0".getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+                fileExists = true;
+            } catch(IOException iox){
+                log.warn("Failed to create restore file", iox);
+            }
+        }
+
+        if(!fileExists)
             throw new InvalidConfigurationException("progress-restore-file", "Restore file must be a valid file reference");
 
         if(this.theConfig.progressRestoreFile != LibraryAnalysisConfig.DEFAULT_VALUE_PROGRESS_RESTORE_FILE)

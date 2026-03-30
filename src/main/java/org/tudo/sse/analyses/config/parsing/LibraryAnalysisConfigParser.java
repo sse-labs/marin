@@ -53,7 +53,7 @@ public class LibraryAnalysisConfigParser implements CLIParsingUtilities {
                     break;
                 case "-prf":
                 case "--progress-restore-file":
-                    configBuilder.withProgressRestoreFile(nextArgAsRegularFileReference(args, i));
+                    configBuilder.withProgressRestoreFile(nextArgAsPath(args, i));
                     break;
                 case "-spi":
                 case "--save-progress-interval":
