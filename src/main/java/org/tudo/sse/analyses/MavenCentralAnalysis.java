@@ -6,7 +6,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tudo.sse.utils.MarinOpalLogger;
 
-abstract class MavenCentralAnalysis {
+/**
+ * An analysis that processes entities (artifacts or libraries) from the Maven Central ecosystem.
+ *
+ * @author Johannes Düsing
+ */
+public abstract class MavenCentralAnalysis {
 
     /**
      * Defines whether this analysis requires artifacts to have index information annotated.

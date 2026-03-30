@@ -10,6 +10,16 @@ Add the following dependency to your `pom.xml` to add MARIN to your project:
 </dependency>
 ```
 
+Ideally, make sure that you have a logging backend like `logback-classic` included in your project as well:
+
+```
+<dependency>
+    <groupId>ch.qos.logback</groupId>
+    <artifactId>logback-classic</artifactId>
+    <version>1.5.32</version>
+</dependency>
+```
+
 ## Required Java Version
 You will need Java 11 or higher to build MARIN yourself.
 
@@ -74,22 +84,24 @@ Once this is implemented, you can run your analysis using the following command.
 ### Using Iterators
 As opposed to extending a base class, in order to use MARIN's iterator implementations you will have to first create an analysis configuration object programmatically. This can be done using the `ArtifactAnalysisConfigBuilder` or `LibraryAnalysisConfigBuilder` classes, respectively. The following example shows how to first build a configuration, and then use it to initialize a `MavenCentralArtifactIterator`.
 ```java
-final boolean resolvePom = true;
-final boolean resolveTransitive = false;
-final boolean resolveJar = true;
-final Path gavInputList = Paths.get("path-to-input-file");
+static void analyze() throws InvalidConfigurationException {
+    final boolean resolvePom = true;
+    final boolean resolveTransitive = false;
+    final boolean resolveJar = true;
+    final Path gavInputList = Paths.get("path-to-input-file");
 
-final ArtifactAnalysisConfig config = new ArtifactAnalysisConfigBuilder()
-                .withInputList(gavInputList)
-                .withSkip(2)
-                .withTake(5)
-                .build();
+    final ArtifactAnalysisConfig config = new ArtifactAnalysisConfigBuilder()
+            .withInputList(gavInputList)
+            .withSkip(2)
+            .withTake(5)
+            .build();
 
-MavenCentralArtifactIterator iterator = new MavenCentralArtifactIterator(resolvePom, resolveTransitive, resolveJar, config);
+    MavenCentralArtifactIterator iterator = new MavenCentralArtifactIterator(resolvePom, resolveTransitive, resolveJar, config);
 
-while(iterator.hasNext()){
-    Artifact current = iterator.next();
-    // TODO: Process artifact
+    while(iterator.hasNext()){
+        Artifact current = iterator.next();
+        // TODO: Process artifact
+    }
 }
 ```
 
@@ -99,6 +111,9 @@ You can run each example on the first 1000 Maven artifacts by invoking `java -ja
 
 ### Counting all classFiles from jar artifacts:
 ``` java
+import org.tudo.sse.analyses.MavenCentralArtifactAnalysis;
+import org.tudo.sse.model.Artifact;
+
 public class ClassFileCountImplementation extends MavenCentralArtifactAnalysis {
 
     private long numberOfClassfiles;
@@ -123,6 +138,13 @@ public class ClassFileCountImplementation extends MavenCentralArtifactAnalysis {
 
 ### Find all Unique Licenses from pom artifacts
 ``` java
+import org.tudo.sse.analyses.MavenCentralArtifactAnalysis;
+import org.tudo.sse.model.Artifact;
+import org.tudo.sse.model.pom.License;
+import org.tudo.sse.model.pom.PomInformation;
+
+import java.util.*;
+
 public class LicenseImplementation extends MavenCentralArtifactAnalysis {
     private final Set<License> uniqueLicenses;
 
@@ -151,6 +173,11 @@ public class LicenseImplementation extends MavenCentralArtifactAnalysis {
 
 ### Collect all artifacts that have javadocs
 ``` java
+import org.tudo.sse.analyses.MavenCentralArtifactAnalysis;
+import org.tudo.sse.model.Artifact;
+
+import java.util.*;
+
 public class JavaDocImplementation extends MavenCentralArtifactAnalysis {
 
     private final Set<Artifact> hasJavadocs;
@@ -163,8 +190,8 @@ public class JavaDocImplementation extends MavenCentralArtifactAnalysis {
     @Override
     public void analyzeArtifact(Artifact toAnalyze) {
         if(toAnalyze.getIndexInformation() != null) {
-            List<Package> packages = toAnalyze.getIndexInformation().getPackages();
-            for(Package current : packages) {
+            List<org.tudo.sse.model.index.Package> packages = toAnalyze.getIndexInformation().getPackages();
+            for(org.tudo.sse.model.index.Package current : packages) {
                 if(current.getJavadocExists() > 0) {
                     hasJavadocs.add(toAnalyze);
                     break;
