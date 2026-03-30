@@ -206,75 +206,301 @@
   },
   "resolveArtifacts": [
     {
-      "parent": "net.officefloor.plugin:plugins:1.3.0",
-      "name": "WAR Plug-in",
-      "description": "OfficeFloor plug-in for utilising WAR",
-      "url": "null",
+      "parent": "null",
+      "name": "spring-boot-starter-web",
+      "description": "Starter for building web, including RESTful, applications using Spring MVC. Uses Tomcat as the default embedded container",
+      "url": "https://spring.io/projects/spring-boot",
       "packaging": "jar",
-      "properties": [
-        ["project.build.sourceEncoding", "UTF-8"]
-      ],
       "inceptionYear": "null",
       "dependencies": [
-        "net.officefloor.core:officebuilding:null",
-        "${project.groupId}:officeplugin_servlet:null",
-        "org.eclipse.jetty:jetty-servlet:null",
-        "org.apache.httpcomponents:httpclient:null"
+        "org.springframework.boot:spring-boot-starter:2.6.3",
+        "org.springframework.boot:spring-boot-starter-json:2.6.3",
+        "org.springframework.boot:spring-boot-starter-tomcat:2.6.3",
+        "org.springframework:spring-web:5.3.15",
+        "org.springframework:spring-webmvc:5.3.15"
       ],
-      "licenses": [],
+      "licenses": [
+        "https://www.apache.org/licenses/LICENSE-2.0"
+      ],
       "dependencyManagement": "null"
     },
     {
-      "parent": "net.officefloor.plugin:plugins:1.2.0",
-      "name": "WAR Plug-in",
-      "description": "OfficeFloor plug-in for utilising WAR",
-      "url": "null",
+      "parent": "org.apache.commons:commons-parent:52",
+      "name": "Apache Commons Lang",
+      "description": "Apache Commons Lang, a package of Java utility classes for the\n  classes that are in java.lang\u0027s hierarchy, or are considered to be so\n  standard as to justify existence in java.lang.",
+      "url": "https://commons.apache.org/proper/commons-lang/",
       "packaging": "jar",
+      "inceptionYear": "2001",
       "properties": [
-        ["project.build.sourceEncoding", "UTF-8"]
+        [
+          "jmh.version",
+          "1.27"
+        ],
+        [
+          "commons.release.version",
+          "3.12.0"
+        ],
+        [
+          "commons.encoding",
+          "utf-8"
+        ],
+        [
+          "commons.bc.version",
+          "3.11"
+        ],
+        [
+          "commons.site.path",
+          "lang"
+        ],
+        [
+          "commons.jira.id",
+          "LANG"
+        ],
+        [
+          "commons.scmPubCheckoutDirectory",
+          "site-content"
+        ],
+        [
+          "commons.releaseManagerName",
+          "Gary Gregory"
+        ],
+        [
+          "commons.releaseManagerKey",
+          "86fdc7e2a11262cb"
+        ],
+        [
+          "commons.componentid",
+          "lang"
+        ],
+        [
+          "uberjar.name",
+          "benchmarks"
+        ],
+        [
+          "commons.javadoc.version",
+          "3.2.0"
+        ],
+        [
+          "commons.japicmp.version",
+          "0.15.2"
+        ],
+        [
+          "project.build.sourceEncoding",
+          "ISO-8859-1"
+        ],
+        [
+          "commons.module.name",
+          "org.apache.commons.lang3"
+        ],
+        [
+          "spotbugs.impl.version",
+          "4.2.1"
+        ],
+        [
+          "commons.release.2.version",
+          "2.6"
+        ],
+        [
+          "clirr.skip",
+          "true"
+        ],
+        [
+          "commons.release.desc",
+          "(Java 8+)"
+        ],
+        [
+          "maven.compiler.source",
+          "1.8"
+        ],
+        [
+          "checkstyle.configdir",
+          "src/site/resources/checkstyle"
+        ],
+        [
+          "commons.jira.pid",
+          "12310481"
+        ],
+        [
+          "commons.distSvnStagingUrl",
+          "scm:svn:https://dist.apache.org/repos/dist/dev/commons/lang"
+        ],
+        [
+          "project.reporting.outputEncoding",
+          "UTF-8"
+        ],
+        [
+          "commons.rc.version",
+          "RC1"
+        ],
+        [
+          "commons.surefire.version",
+          "3.0.0-M5"
+        ],
+        [
+          "maven.compiler.target",
+          "1.8"
+        ],
+        [
+          "commons.release.2.name",
+          "commons-lang-${commons.release.2.version}"
+        ],
+        [
+          "spotbugs.plugin.version",
+          "4.2.0"
+        ],
+        [
+          "commons.scmPubUrl",
+          "https://svn.apache.org/repos/infra/websites/production/commons/content/proper/commons-lang"
+        ],
+        [
+          "checkstyle.version",
+          "8.40"
+        ],
+        [
+          "japicmp.skip",
+          "false"
+        ],
+        [
+          "checkstyle.plugin.version",
+          "3.1.2"
+        ],
+        [
+          "commons.jacoco.version",
+          "0.8.6"
+        ],
+        [
+          "commons.release.isDistModule",
+          "true"
+        ],
+        [
+          "commons.release.2.desc",
+          "(Requires Java 1.2 or later)"
+        ],
+        [
+          "commons.packageId",
+          "lang3"
+        ],
+        [
+          "argLine",
+          "-Xmx512m"
+        ]
       ],
-      "inceptionYear": "null",
       "dependencies": [
-        "net.officefloor.core:officebuilding:null",
-        "${project.groupId}:officeplugin_servlet:null",
-        "org.eclipse.jetty:jetty-servlet:null",
-        "org.apache.httpcomponents:httpclient:null"
+        "org.junit.jupiter:junit-jupiter:null",
+        "org.junit-pioneer:junit-pioneer:1.3.0",
+        "org.hamcrest:hamcrest:2.2",
+        "org.easymock:easymock:4.2",
+        "org.openjdk.jmh:jmh-core:${jmh.version}",
+        "org.openjdk.jmh:jmh-generator-annprocess:${jmh.version}",
+        "com.google.code.findbugs:jsr305:3.0.2"
       ],
       "licenses": [],
+      "dependencyManagement": [
+        "org.junit:junit-bom:5.7.1"
+      ]
+    },
+    {
+      "parent": "com.fasterxml.jackson:jackson-base:2.13.1",
+      "name": "jackson-databind",
+      "description": "General data-binding functionality for Jackson: works on core streaming API",
+      "url": "http://github.com/FasterXML/jackson",
+      "packaging": "bundle",
+      "inceptionYear": "2008",
+      "properties": [
+        [
+          "javac.src.version",
+          "1.8"
+        ],
+        [
+          "packageVersion.dir",
+          "com/fasterxml/jackson/databind/cfg"
+        ],
+        [
+          "javac.target.version",
+          "1.8"
+        ],
+        [
+          "osgi.import",
+          "org.w3c.dom.bootstrap;resolution:\u003doptional,\n        *"
+        ],
+        [
+          "packageVersion.package",
+          "com.fasterxml.jackson.databind.cfg"
+        ],
+        [
+          "osgi.export",
+          "com.fasterxml.jackson.databind.*;version\u003d${project.version}"
+        ],
+        [
+          "version.powermock",
+          "2.0.0"
+        ]
+      ],
+      "dependencies": [
+        "com.fasterxml.jackson.core:jackson-annotations:${jackson.version.annotations}",
+        "com.fasterxml.jackson.core:jackson-core:${jackson.version.core}",
+        "org.powermock:powermock-core:${version.powermock}",
+        "org.powermock:powermock-module-junit4:${version.powermock}",
+        "org.powermock:powermock-api-mockito2:${version.powermock}",
+        "javax.measure:jsr-275:0.9.1"
+      ],
+      "licenses": [
+        "http://www.apache.org/licenses/LICENSE-2.0.txt"
+      ],
       "dependencyManagement": "null"
     },
     {
-      "parent": "net.officefloor.plugin:plugins:1.1.0",
-      "name": "WAR Plug-in",
-      "description": "OfficeFloor plug-in for utilising WAR",
-      "url": "null",
+      "parent": "null",
+      "name": "JUnit",
+      "description": "JUnit is a unit testing framework for Java, created by Erich Gamma and Kent Beck.",
+      "url": "http://junit.org",
       "packaging": "jar",
+      "inceptionYear": "2002",
       "properties": [
-        ["project.build.sourceEncoding", "UTF-8"]
+        [
+          "surefireVersion",
+          "2.19.1"
+        ],
+        [
+          "jdkVersion",
+          "1.5"
+        ],
+        [
+          "project.build.sourceEncoding",
+          "ISO-8859-1"
+        ],
+        [
+          "jarPluginVersion",
+          "2.6"
+        ],
+        [
+          "javadocPluginVersion",
+          "2.10.3"
+        ],
+        [
+          "enforcerPluginVersion",
+          "1.4"
+        ],
+        [
+          "arguments",
+          ""
+        ],
+        [
+          "hamcrestVersion",
+          "1.3"
+        ],
+        [
+          "gpg.keyname",
+          "67893CC4"
+        ]
       ],
-      "inceptionYear": "null",
       "dependencies": [
-        "net.officefloor.core:officebuilding:null",
-        "${project.groupId}:officeplugin_servlet:null",
-        "org.apache.httpcomponents:httpclient:null"
+        "org.hamcrest:hamcrest-core:${hamcrestVersion}",
+        "org.hamcrest:hamcrest-library:${hamcrestVersion}"
       ],
-      "licenses": [],
-      "dependencyManagement": "null"
-    },
-    {
-      "parent" : "net.officefloor.plugin:plugins:1.4.0",
-      "name" : "Spring Plug-in",
-      "description" : "Integration with Spring to allow use of its BeanFactory (specifically XmlBeanFactory).",
-      "url" : "null",
-      "packaging" : "jar",
-      "properties" : [
-        ["project.build.sourceEncoding", "UTF-8"]
+      "licenses": [
+        "http://www.eclipse.org/legal/epl-v10.html"
       ],
-      "inceptionYear": "null",
-      "dependencies": [
-        "org.springframework:spring:null"
-      ],
-      "licenses": [],
       "dependencyManagement": "null"
     }
   ],

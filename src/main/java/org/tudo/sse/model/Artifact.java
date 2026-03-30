@@ -1,7 +1,7 @@
 package org.tudo.sse.model;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tudo.sse.model.index.IndexInformation;
 import org.tudo.sse.model.jar.*;
 import org.tudo.sse.model.pom.PomInformation;
@@ -21,7 +21,7 @@ public class Artifact {
      * The identifier object for the artifact.
      */
     public final ArtifactIdent ident;
-    private static final Logger log = LogManager.getLogger(Artifact.class);
+    private static final Logger log = LoggerFactory.getLogger(Artifact.class);
 
     /**
      * A secondary identifier, for if its pom information has been moved on the maven central repository.
@@ -32,45 +32,12 @@ public class Artifact {
     private JarInformation jarInformation;
 
     /**
-     * Creates a new artifact based on given IndexInformation. This artifact will have no POM or JAR information
-     * associated.
-     *
-     * @param indexInformation The IndexInformation for which to create the artifact
+     * Create a new artifact with no information attached.
+     * @param ident The artifact identifier
      */
-    public Artifact(IndexInformation indexInformation) {
-        this.indexInformation = indexInformation;
-        this.ident = indexInformation.getIdent();
-        pomInformation = null;
-        jarInformation = null;
+    Artifact(ArtifactIdent ident){
+        this.ident = ident;
     }
-
-    /**
-     * Creates a new artifact based on given PomInformation. This artifact will have no Index or JAR information
-     * associated.
-     *
-     * @param pomInformation The PomInformation for which to create the artifact
-     */
-    public Artifact(PomInformation pomInformation) {
-        this.pomInformation = pomInformation;
-        this.ident = pomInformation.getIdent();
-        this.relocation = pomInformation.getRelocation();
-        indexInformation = null;
-        jarInformation = null;
-    }
-
-    /**
-     * Creates a new artifact based on the given JarInformation. This artifact will have no Index or POM information
-     * associated.
-     *
-     * @param jarInformation The JarInformation for which to create the artifact
-     */
-    public Artifact(JarInformation jarInformation) {
-        this.jarInformation = jarInformation;
-        this.ident = jarInformation.getIdent();
-        indexInformation = null;
-        pomInformation = null;
-    }
-
 
     /**
      * Returns the artifact identifier for this artifact.
@@ -178,13 +145,15 @@ public class Artifact {
             Map<String, Artifact> depArts = new HashMap<>();
 
             if(pomInformation != null) {
-                JarResolver resolver = new JarResolver();
+                final ResolutionContext resolutionCtx = ResolutionContext.createAnonymousContext();
+                final JarResolver resolver = new JarResolver();
+
                 for(Artifact artifact : pomInformation.getEffectiveTransitiveDependencies()) {
                     try {
-                        artifact.setJarInformation(resolver.parseJar(artifact.getIdent()).getJarInformation());
+                        artifact.setJarInformation(resolver.parseJar(artifact.getIdent(), resolutionCtx).getJarInformation());
                         depArts.put(artifact.getIdent().getGroupID() + ":" + artifact.getIdent().getArtifactID(), artifact);
                     } catch (JarResolutionException e) {
-                        log.error(e);
+                        log.error("Failed to resolve transitive dependency: {}", artifact.getIdent(), e);
                     }
                 }
             }

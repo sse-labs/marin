@@ -1,20 +1,18 @@
 package org.tudo.sse.resolution;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.opalj.br.ClassFile;
 import org.opalj.br.Method;
-import org.opalj.br.ObjectType;
-import org.opalj.br.analyses.Project$;
-import org.opalj.br.package$;
-import org.opalj.br.reader.Java16LibraryFramework;
-import org.opalj.log.GlobalLogContext$;
-import org.tudo.sse.ArtifactFactory;
+import org.opalj.br.ClassType;
+import org.opalj.br.reader.BytecodeInstructionsCache;
+import org.opalj.br.reader.Java17FrameworkWithCaching;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tudo.sse.model.Artifact;
 import org.tudo.sse.model.ArtifactIdent;
 import org.tudo.sse.model.jar.JarInformation;
 import org.tudo.sse.model.jar.ObjType;
+import org.tudo.sse.model.ResolutionContext;
 import org.tudo.sse.utils.MavenCentralRepository;
 import scala.Tuple2;
 
@@ -22,6 +20,7 @@ import scala.Tuple2;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.io.InputStream;
@@ -40,9 +39,8 @@ public class JarResolver {
 
     private final Path pathToDirectory;
     private boolean output;
-    private final Java16LibraryFramework cfReader = Project$.MODULE$.JavaClassFileReader(GlobalLogContext$.MODULE$, package$.MODULE$.BaseConfig());
     private static final MavenCentralRepository MavenRepo = MavenCentralRepository.getInstance();
-    private static final Logger log = LogManager.getLogger(JarResolver.class);
+    private static final Logger log = LoggerFactory.getLogger(JarResolver.class);
 
     /**
      * Creates a new empty JAR resolver instance
@@ -74,17 +72,18 @@ public class JarResolver {
      * This method resolves jar artifacts from a given list of artifact identifiers.
      *
      * @param identifiers artifact identifiers used to retrieve jar artifacts to process
+     * @param ctx The resolution context to use for creating artifacts
      * @return a list of resolved artifacts
      * @see Artifact
      */
-    public List<Artifact> resolveJars(List<ArtifactIdent> identifiers) {
+    public List<Artifact> resolveJars(List<ArtifactIdent> identifiers, ResolutionContext ctx) {
         List<Artifact> toReturn = new ArrayList<>();
         int count = 0;
         for(ArtifactIdent current : identifiers) {
             try {
-                toReturn.add(parseJar(current));
+                toReturn.add(parseJar(current, ctx));
             } catch (JarResolutionException e) {
-                log.error(e);
+                log.error("Failed to resolve JAR for {}", current, e);
             }
 
             count++;
@@ -101,13 +100,16 @@ public class JarResolver {
      * This method resolve a single jar artifact given an artifact identifier
      *
      * @param identifier an artifact identifier to retrieve the jar artifact to process
+     * @param ctx The resolution context to use for creating artifacts
      * @return a resolved artifact
      * @throws JarResolutionException when there is an issue resolving the given jar artifact
      */
-    public Artifact parseJar(ArtifactIdent identifier) throws JarResolutionException {
-        if(ArtifactFactory.getArtifact(identifier) != null && Objects.requireNonNull(ArtifactFactory.getArtifact(identifier)).getJarInformation() != null) {
-            return ArtifactFactory.getArtifact(identifier);
-        }
+    public Artifact parseJar(ArtifactIdent identifier, ResolutionContext ctx) throws JarResolutionException {
+        final Artifact currentArtifact = ctx.createArtifact(identifier);
+
+        // Only build jar information if it is not already present for the current resolution context
+        if(currentArtifact.hasJarInformation())
+            return currentArtifact;
 
         try {
             URL jarURL = identifier.getMavenCentralJarUri().toURL();
@@ -137,10 +139,16 @@ public class JarResolver {
             }
 
             List<Tuple2<ClassFile, URL>> classList = readClassesFromJarStream(jarInput, jarURL);
-            return ArtifactFactory.createArtifact(parsingClassFiles(classList, identifier));
+
+            final JarInformation theJarInformation = parsingClassFiles(classList, identifier);
+
+            // Finally set jar information for current artifact, then return
+            currentArtifact.setJarInformation(theJarInformation);
+
+            return currentArtifact;
 
         } catch (IOException e) {
-            log.error(e);
+            log.error("IO error while accessing JAR for {}", identifier, e);
         } catch (FileNotFoundException ignored) {}
         return null;
     }
@@ -168,7 +176,7 @@ public class JarResolver {
             numMethods += current.methods().size();
             numFields += current.fields().size();
 
-            List<Method> methods =  JavaConverters.seqAsJavaList(classfile._1.methods());
+            List<Method> methods =  scala.jdk.CollectionConverters.SeqHasAsJava(classfile._1.methods()).asJava();
             for(Method method : methods) {
                 //tally up bytecode for each method here
                 if(method.body().isDefined()) {
@@ -212,7 +220,7 @@ public class JarResolver {
         }
 
         if(!classFile.interfaceTypes().isEmpty()) {
-            for(ObjectType type : JavaConverters.asJava(classFile.interfaceTypes())) {
+            for(ClassType type : JavaConverters.asJava(classFile.interfaceTypes())) {
                 interfaces.add(new ObjType(type.id(), type.fqn(), type.packageName()));
             }
         }
@@ -221,7 +229,8 @@ public class JarResolver {
     }
 
     private List<Tuple2<ClassFile, URL>> readClassesFromJarStream(InputStream jarStream, URL source) throws JarResolutionException {
-        var entries = new ArrayList<Tuple2<ClassFile, URL>>();
+        final var entries = new ArrayList<Tuple2<ClassFile, URL>>();
+        final var cfReader = newClassFileReader();
 
         try (JarInputStream jarInputStream = new JarInputStream(jarStream)){
             var currentEntry = jarInputStream.getNextJarEntry();
@@ -249,21 +258,19 @@ public class JarResolver {
         return entries;
     }
 
-    private DataInputStream getEntryByteStream(InputStream in) throws IOException  {
+    /**
+     * Create a new class file reader with a weak reference to a new cache, so that cached instruction objects may be
+     * released at some point.
+     *
+     * @return New class file reader instance without rewriting
+     */
+    private Java17FrameworkWithCaching newClassFileReader(){
+        SoftReference<BytecodeInstructionsCache> cacheRef = new SoftReference<>(new BytecodeInstructionsCache());
+        return new Java17FrameworkWithCaching(cacheRef.get());
+    }
 
-        var baos = new ByteArrayOutputStream();
-        var buffer = new byte[32 * 1024];
-
-        int bytesRead = in.read(buffer);
-
-        while(bytesRead > 0){
-            baos.write(buffer, 0, bytesRead);
-            baos.close();
-            baos.flush();
-            bytesRead = in.read(buffer);
-        }
-
-        return new DataInputStream(new ByteArrayInputStream(baos.toByteArray()));
+    private DataInputStream getEntryByteStream(InputStream in) {
+        return new DataInputStream(in);
     }
 
 }

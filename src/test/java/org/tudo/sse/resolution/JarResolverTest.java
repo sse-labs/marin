@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.tudo.sse.model.ArtifactIdent;
 import org.tudo.sse.model.jar.ClassFile;
 import org.tudo.sse.model.jar.JarInformation;
+import org.tudo.sse.model.ResolutionContext;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -16,6 +17,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings("unchecked")
 class JarResolverTest {
 
     JarResolver jarResolver;
@@ -37,8 +39,9 @@ class JarResolverTest {
     @Test
     void parseJar() {
         JarInformation toTest;
+        final ResolutionContext resolutionContext = ResolutionContext.createAnonymousContext();
         try {
-            toTest = jarResolver.parseJar(new ArtifactIdent("com.google.common.html.types", "types", "1.0.0")).getJarInformation();
+            toTest = jarResolver.parseJar(new ArtifactIdent("com.google.common.html.types", "types", "1.0.0"), resolutionContext).getJarInformation();
         } catch (JarResolutionException e) {
             throw new RuntimeException(e);
         }

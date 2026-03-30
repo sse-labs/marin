@@ -16,7 +16,15 @@ import java.nio.charset.StandardCharsets;
  */
 public final class MavenCentralRepository {
 
-    private static final String RepoBasePath = "https://repo1.maven.org/maven2/";
+    /**
+     * The Maven Central repository base path.
+     */
+    public static final String RepoBasePath = "https://repo1.maven.org/maven2/";
+
+    /**
+     * The URI representing this repository's base path.
+     */
+    public static final URI RepoBaseURI = URI.create(RepoBasePath);
 
     private static MavenCentralRepository theInstance = null;
 
@@ -33,6 +41,20 @@ public final class MavenCentralRepository {
      */
     public InputStream openXMLFileInputStream(ArtifactIdent ident) throws IOException, FileNotFoundException {
         return ResourceConnections.openInputStream(ident.getMavenCentralXMLUri());
+    }
+
+    /**
+     * Opens an input stream to the version list of the given library.
+     * @param groupId The library's groupId
+     * @param artifactId The library's artifactId
+     * @return An input stream for the library's version list XML file
+     * @throws IOException If accessing the resource fails
+     * @throws FileNotFoundException If the library does not exist / does not have a version list file
+     * @throws URISyntaxException If groupId or artifactId contained invalid URI characters
+     */
+    public InputStream openXMLFileInputStream(String groupId, String artifactId)
+            throws IOException, FileNotFoundException, URISyntaxException{
+        return ResourceConnections.openInputStream(MavenCentralRepository.buildVersionsFileURI(groupId, artifactId));
     }
 
     /**
@@ -137,6 +159,19 @@ public final class MavenCentralRepository {
     }
 
     /**
+     * Builds the URI that references a library's version list (maven-metadata.xml) file.
+     * @param groupId The library's groupId
+     * @param artifactId The library's artifactId
+     * @return Fully encoded URI referencing the library's version list
+     * @throws URISyntaxException If the URI is invalid
+     */
+    public static URI buildVersionsFileURI(String groupId, String artifactId)
+            throws URISyntaxException {
+        return buildLibraryBaseURI(groupId, artifactId)
+                .resolve(encode("maven-metadata") + ".xml");
+    }
+
+    /**
      * Builds the URI that references an artifact base directory on the Central repository
      * @param artifact The artifact identifier
      * @return Fully encoded URI referencing the artifact base directory
@@ -173,9 +208,20 @@ public final class MavenCentralRepository {
      */
     public static URI buildLibraryBaseURI(ArtifactIdent artifact)
             throws URISyntaxException {
+        return buildLibraryBaseURI(artifact.getGroupID(), artifact.getArtifactID());
+    }
+
+    /**
+     * Builds the URI that references a library's base directory on the Central repository
+     * @param groupId The library's groupId
+     * @param artifactId The library's artifactId
+     * @return Fully encoded URI referencing the library base directory
+     * @throws URISyntaxException If the URI is invalid
+     */
+    public static URI buildLibraryBaseURI(String groupId, String artifactId) throws URISyntaxException {
         return new URI(RepoBasePath)
-                .resolve(encode(artifact.getGroupID()).replace(".", "/") + "/")
-                .resolve(encode(artifact.getArtifactID()) + "/");
+                .resolve(encode(groupId).replace(".", "/") + "/")
+                .resolve(encode(artifactId) + "/");
     }
 
     private static String encode(String path) {

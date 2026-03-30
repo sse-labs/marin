@@ -2,10 +2,9 @@ package org.tudo.sse.model;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
-import org.tudo.sse.ArtifactFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tudo.sse.model.jar.ClassFileNode;
 import org.tudo.sse.model.jar.DefinedClassFileNode;
 import org.tudo.sse.resolution.*;
@@ -19,7 +18,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
+@SuppressWarnings("unchecked")
 class TypeStructureTest {
 
     JarResolver resolver = new JarResolver();
@@ -27,7 +26,7 @@ class TypeStructureTest {
     Map<String, Object> json;
     Gson gson = new Gson();
 
-    private static final Logger log = LogManager.getLogger(TypeStructureTest.class);
+    private static final Logger log = LoggerFactory.getLogger(TypeStructureTest.class);
 
     {
         InputStream resource = this.getClass().getClassLoader().getResourceAsStream("TypeStructure.json");
@@ -42,11 +41,13 @@ class TypeStructureTest {
         Artifact jarArt1;
         ArtifactIdent ident = new ArtifactIdent("org.springframework", "spring-web", "6.1.11");
         Artifact jarArt2;
-        jarArt2 = ArtifactFactory.getArtifact(ident);
+
+        final ResolutionContext testCtx = ResolutionContext.createAnonymousContext();
+
         try {
-            jarArt1 = resolver.parseJar(new ArtifactIdent("org.bouncycastle", "bcpg-lts8on", "2.73.6"));
-            jarArt2 = resolver.parseJar(ident);
-            pomResolver.resolveArtifact(ident);
+            jarArt1 = resolver.parseJar(new ArtifactIdent("org.bouncycastle", "bcpg-lts8on", "2.73.6"), testCtx);
+            jarArt2 = resolver.parseJar(ident, testCtx);
+            pomResolver.resolveArtifact(ident, testCtx);
         } catch (JarResolutionException | PomResolutionException | FileNotFoundException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -65,7 +66,6 @@ class TypeStructureTest {
         multipleChildren(results2.get("reactor/core/observability/DefaultSignalListener"), (Map<String, Object>) expected2.get("test1"));
         multiLevelChild(results2.get("java/lang/RuntimeException"), (Map<String, Object>) expected2.get("test2"));
         interfacesCheck(results2.get("java/lang/Object"), (Map<String, Object>) expected2.get("test3"));
-
     }
 
     ClassFileNode findNode(ClassFileNode root, String toFind) {

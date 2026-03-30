@@ -4,12 +4,12 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.tudo.sse.model.*;
+import org.tudo.sse.model.ResolutionContext;
 import org.tudo.sse.resolution.PomResolutionException;
 import org.tudo.sse.resolution.PomResolver;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,45 +20,55 @@ import java.util.Map;
  */
 public class LocalPomInformation extends PomInformation {
 
-    private Path pomPath;
+    private final Path pomPath;
+    private final boolean loadTransitives;
+    private final InputStream pomStream;
+
 
     /**
      * Creates a new LocalPomInformation object for a POM file located at the given path.
      *
-     * @param path The Path object identifying a pom file
-     * @param resolver The PomResolver to use for resolution
-     * @throws FileNotFoundException If the given Path does not exist
+     * @param pomPath The Path object identifying a pom file
+     * @param loadTransitives Whether to load transitive pom information upon initialization
      */
-    public LocalPomInformation(String path, PomResolver resolver) throws FileNotFoundException {
-        this(new FileInputStream(path), resolver);
-        this.pomPath = Paths.get(path);
+    public LocalPomInformation(Path pomPath, boolean loadTransitives){
+        this.pomPath = pomPath;
+        this.loadTransitives = loadTransitives;
+        this.pomStream = null;
     }
 
     /**
-     * Creates a new LocalPomInformation object for a given POM file
-     * @param localPom The file object identifying the local POM file
-     * @param resolver The PomResolver to use for resolution
-     * @throws FileNotFoundException If the given File does not exist
+     * Creates a new LocalPomInformation object for a pom file input stream without a file path on the current drive.
+     * @param pomStream Input Stream containing pom file contents
+     * @param loadTransitives Whether to load transitive pom information upon initialization
      */
-    public LocalPomInformation(File localPom, PomResolver resolver) throws FileNotFoundException{
-        this(new FileInputStream(localPom), resolver);
-        this.pomPath = localPom.toPath();
+    public LocalPomInformation(InputStream pomStream, boolean loadTransitives){
+        this.pomPath = null;
+        this.loadTransitives = loadTransitives;
+        this.pomStream = pomStream;
     }
 
     /**
-     * Creates a new LocalPomInformation object for a given InputStream (representing a text file).
-     * @param localPom An InputStream containing the POM file contents
-     * @param resolver The PomResolver to use for resolution
+     * Resolve the local pom file and compute all information as specified upon object creation.
+     *
+     * @param resolver The pom resolver to use for resolution
+     * @throws IOException If reading the pom file contents fails
+     * @throws XmlPullParserException If parsing the pom.xml file fails
      */
-    public LocalPomInformation(InputStream localPom, PomResolver resolver) {
-        super();
-        try {
-            resolveLocalFile(resolver, localPom);
-            resolveParentAndImport(resolver);
-            resolveDependencies(resolver);
-        } catch (IOException | XmlPullParserException e) {
-            throw new RuntimeException(e);
+    public void resolveLocalPom(PomResolver resolver) throws IOException, XmlPullParserException {
+        if(pomStream != null) {
+            resolveLocalFile(resolver, this.pomStream);
+        } else if(pomPath != null) {
+            try (FileInputStream is = new FileInputStream(this.pomPath.toFile())) {
+                resolveLocalFile(resolver, is);
+            }
         }
+
+        if(this.loadTransitives){
+            resolveParentAndImport(resolver, ResolutionContext.createAnonymousContext());
+            resolveDependencies(resolver);
+        }
+
     }
 
     /**
@@ -78,7 +88,7 @@ public class LocalPomInformation extends PomInformation {
      * @throws IOException when there's an issue opening the file
      * @throws XmlPullParserException when there's an issue parsing the local file using the maven model
      */
-    public void resolveLocalFile(PomResolver resolver, InputStream pomFile) throws IOException, XmlPullParserException{
+    private void resolveLocalFile(PomResolver resolver, InputStream pomFile) throws IOException, XmlPullParserException{
         MavenXpp3Reader reader = new MavenXpp3Reader();
 
         Model model = reader.read(pomFile, true);
@@ -97,8 +107,8 @@ public class LocalPomInformation extends PomInformation {
             throw new NullPointerException();
         }
 
-        setIdent(new ArtifactIdent(groupId, model.getArtifactId(), version));
-        setRawPomFeatures(processRawPomFeatures(model, resolver));
+        this.ident = new ArtifactIdent(groupId, model.getArtifactId(), version);
+        this.rawPomFeatures = processRawPomFeatures(model, resolver);
     }
 
     /**
@@ -108,7 +118,7 @@ public class LocalPomInformation extends PomInformation {
      * @param resolver pom resolver to aid in feature collection
      * @return raw features that are collected during resolution
      */
-    public RawPomFeatures processRawPomFeatures(Model model, PomResolver resolver) {
+    private RawPomFeatures processRawPomFeatures(Model model, PomResolver resolver) {
         RawPomFeatures rawPomFeatures = new RawPomFeatures();
 
         //parent information
@@ -157,18 +167,18 @@ public class LocalPomInformation extends PomInformation {
      * @see PomResolver
      * @param resolver the resolver used to resolve the parents and imports of the local pom
      */
-    public void resolveParentAndImport(PomResolver resolver) {
-        if(getRawPomFeatures().getParent() != null) {
+    private void resolveParentAndImport(PomResolver resolver, ResolutionContext ctx) {
+        if(this.rawPomFeatures.getParent() != null) {
             try {
-                setParent(resolver.processArtifact(getRawPomFeatures().getParent()));
+                this.parent = resolver.processArtifact(this.rawPomFeatures.getParent(), ctx);
             } catch (PomResolutionException | org.tudo.sse.resolution.FileNotFoundException | IOException e) {
                 throw new RuntimeException(e);
             }
         }
 
-        if(getRawPomFeatures().getDependencyManagement() != null) {
+        if(this.rawPomFeatures.getDependencyManagement() != null) {
             try {
-                setImports(resolver.resolveImports(getRawPomFeatures().getDependencyManagement(), this));
+                this.imports = resolver.resolveImports(this.rawPomFeatures.getDependencyManagement(), this, ctx);
             } catch (PomResolutionException | org.tudo.sse.resolution.FileNotFoundException | IOException e) {
                 throw new RuntimeException(e);
             }
@@ -181,7 +191,7 @@ public class LocalPomInformation extends PomInformation {
      * @see PomResolver
      * @param resolver the pomResolver used to drive this method
      */
-    public void resolveDependencies(PomResolver resolver) {
+    private void resolveDependencies(PomResolver resolver) {
         setResolvedDependencies(resolver.resolveDependencies(this));
     }
 
