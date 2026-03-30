@@ -1,4 +1,4 @@
- # MARIN (MAven Research INterface)
+# MARIN (MAven Research INterface)
 An interface focused on creating an accessible and scalable way to do research on artifacts on the Maven Central repository. MARIN contains an overarching implementation of the different modules in the interface, allowing for quick and repeated analysis runs to be performed.
 
 Add the following dependency to your `pom.xml` to add MARIN to your project:
@@ -260,10 +260,10 @@ IndexWalker can be implemented into mining software for the iteration and collec
 
 ### Functions
 - Walk all indexes:
-    Traverses and retrieves information from all indexes on the Maven Central Repository.
-  
+  Traverses and retrieves information from all indexes on the Maven Central Repository.
+
 - Paginated Walk:
-    Traverses and retrieves information from a given index, for a specified number of artifacts.
+  Traverses and retrieves information from a given index, for a specified number of artifacts.
 
 
 ## Pom Resolver
@@ -312,7 +312,7 @@ The Jar resolver collects information about jar files stored under a given G:A:V
 - number of packages
 - number of fields
 - number of virtual methods
-- list of classfile objects 
+- list of classfile objects
 
 ### Usage
 The jar resolver makes it easy to run static analysis on any amount of maven central jar artifacts.
