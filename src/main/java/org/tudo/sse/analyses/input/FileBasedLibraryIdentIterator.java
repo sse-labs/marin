@@ -6,13 +6,13 @@ import java.nio.file.Path;
  * Iterator that reads Maven Central library identifiers from a text file. Expects one colon-separated tuple of
  * groupID:artifactID per line.
  */
-public class FileBasedLibraryIterator extends AbstractInputFileIterator<String>{
+public class FileBasedLibraryIdentIterator extends AbstractInputFileIterator<String>{
 
     /**
      * Creates a new library identifier iterator for the given input file.
      * @param gaList Path to input list
      */
-    public FileBasedLibraryIterator(Path gaList) {
+    public FileBasedLibraryIdentIterator(Path gaList) {
         super(gaList);
     }
 

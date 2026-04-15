@@ -91,7 +91,7 @@ abstract class AbstractEntityIterator<S, T> implements Iterator<T> {
 
         try {
             if(!this.badSource)
-                this.skipInitial();
+                this.currentPosition += AnalysisUtils.skipInitial(this.source, this.baseConfig);
         } catch(Exception x){
             log.error("Failed to initialize iterator", x);
             this.badSource = true;
@@ -167,24 +167,6 @@ abstract class AbstractEntityIterator<S, T> implements Iterator<T> {
             try {((AutoCloseable)this.source).close();}
             catch(Exception ignored){}
             this.sourceClosed = true;
-        }
-    }
-
-    private void skipInitial(){
-        final long entitiesToSkip = AnalysisUtils.getInitialPosition(this.baseConfig);
-
-        if(entitiesToSkip > 0L && this.badSource)
-            return;
-
-        for(int i = 0; i < entitiesToSkip && this.source.hasNext(); i++){
-            this.source.next();
-            this.currentPosition += 1L;
-        }
-
-        log.debug("Successfully skipped to position {}", this.currentPosition);
-
-        if(!this.source.hasNext()){
-            log.warn("Reached end of input source while skipping to position {}", entitiesToSkip);
         }
     }
 }

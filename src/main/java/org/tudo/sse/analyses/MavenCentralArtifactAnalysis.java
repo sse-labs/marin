@@ -14,7 +14,7 @@ import org.tudo.sse.multithreading.WorkItem;
 import org.tudo.sse.multithreading.WorkloadIsFinalMessage;
 import org.tudo.sse.resolution.ResolverFactory;
 import org.tudo.sse.analyses.config.parsing.ArtifactAnalysisConfigParser;
-import org.tudo.sse.analyses.input.FileBasedArtifactIterator;
+import org.tudo.sse.analyses.input.FileBasedArtifactIdentIterator;
 import org.tudo.sse.utils.IndexIterator;
 import org.tudo.sse.multithreading.QueueActor;
 import org.tudo.sse.utils.MavenCentralRepository;
@@ -178,7 +178,8 @@ public abstract class MavenCentralArtifactAnalysis extends MavenCentralAnalysis 
             }
 
             // Write final position only if not in multithreaded mode - otherwise Queue actor handles progress
-            if(!artifactConfig.multipleThreads) writePosition();
+            if(!artifactConfig.multipleThreads)
+                AnalysisUtils.writePosition(this.currentPosition, this.artifactConfig);
         } catch (IOException iox){
             throw new RuntimeException(iox);
         }
@@ -352,7 +353,7 @@ public abstract class MavenCentralArtifactAnalysis extends MavenCentralAnalysis 
      * Reads in identifiers from a file, using the configuration passed into it.
      */
     void processArtifactsFromInputFile() {
-        final Iterator<ArtifactIdent> fileIterator = new FileBasedArtifactIterator(this.artifactConfig.inputListFile);
+        final Iterator<ArtifactIdent> fileIterator = new FileBasedArtifactIdentIterator(this.artifactConfig.inputListFile);
 
         // Restore from progress file if available
         if(this.artifactConfig.progressRestoreFile != null){
@@ -396,7 +397,7 @@ public abstract class MavenCentralArtifactAnalysis extends MavenCentralAnalysis 
             log.info("Processed a total of {} entries from file {}.", entriesTaken, this.artifactConfig.inputListFile);
 
             // Write position one final time - in multithreaded mode the queue worker will take care of this
-            writePosition();
+            AnalysisUtils.writePosition(this.currentPosition, this.artifactConfig);
         }
     }
 
@@ -445,15 +446,9 @@ public abstract class MavenCentralArtifactAnalysis extends MavenCentralAnalysis 
     private void writePositionIfNeeded(){
         if(!this.artifactConfig.multipleThreads &&
                 this.currentPosition - this.lastPositionSaved > artifactConfig.progressWriteInterval){
-            writePosition();
+            AnalysisUtils.writePosition(this.currentPosition, this.artifactConfig);
+
+            this.lastPositionSaved = currentPosition;
         }
-    }
-
-    private void writePosition() {
-        try(BufferedWriter writer = Files.newBufferedWriter(this.artifactConfig.progressOutputFile)) {
-            writer.write(Long.toString(this.currentPosition));
-        } catch(IOException ignored) {}
-
-        this.lastPositionSaved = currentPosition;
     }
 }

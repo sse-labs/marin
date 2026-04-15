@@ -8,13 +8,13 @@ import java.nio.file.Path;
  * Iterator that reads Maven Central artifact identifiers from a text file. Expects one colon-separated triple of
  * groupID:artifactID:version per line.
  */
-public class FileBasedArtifactIterator extends AbstractInputFileIterator<ArtifactIdent> {
+public class FileBasedArtifactIdentIterator extends AbstractInputFileIterator<ArtifactIdent> {
 
     /**
      * Creates a new artifact identifier iterator for the given input file.
      * @param gavList Path to input file
      */
-    public FileBasedArtifactIterator(Path gavList) {
+    public FileBasedArtifactIdentIterator(Path gavList) {
         super(gavList);
     }
 

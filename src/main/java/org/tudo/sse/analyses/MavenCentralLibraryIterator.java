@@ -1,7 +1,7 @@
 package org.tudo.sse.analyses;
 
 import org.tudo.sse.analyses.config.LibraryAnalysisConfig;
-import org.tudo.sse.analyses.input.FileBasedLibraryIterator;
+import org.tudo.sse.analyses.input.FileBasedLibraryIdentIterator;
 import org.tudo.sse.model.Artifact;
 import org.tudo.sse.model.ArtifactIdent;
 import org.tudo.sse.model.LibraryResolutionContext;
@@ -105,7 +105,7 @@ public final class MavenCentralLibraryIterator extends AbstractEntityIterator<St
     protected Iterator<String> buildSource(){
         if(this.baseConfig.hasInputList()){
             try {
-                var iterator = new FileBasedLibraryIterator(this.baseConfig.inputListFile);
+                var iterator = new FileBasedLibraryIdentIterator(this.baseConfig.inputListFile);
                 iterator.validateInput();
                 return iterator;
             } catch (IOException | IllegalArgumentException x){
